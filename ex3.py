@@ -8,8 +8,9 @@ from ex3_basics import setUpMesh
 
 
 ##############################################################################
+# for clarification why from -1 to 1.
 dim = 6
-x = np.linspace(-1, 1, dim)
+x = np.linspace(-1, 1, dim) 
 y = np.linspace(-1, 1, dim)
 
 # Create the mesh grid

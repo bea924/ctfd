@@ -38,18 +38,18 @@ class SteadyHeat2D_FVM():
         b = 0
         if (j == 0):
             if (i == 0):
-                a,b = self.build_NE(i,j)
-            elif (i == self.n-1):
-                a,b = self.build_SE(i,j)
-            else:
-                a,b = self.build_east(i,j)
-        elif (j == self.n-1):
-            if (i == 0):
                 a,b = self.build_NW(i,j)
             elif (i == self.n-1):
                 a,b = self.build_SW(i,j)
             else:
                 a,b = self.build_west(i,j)
+        elif (j == self.n-1):
+            if (i == 0):
+                a,b = self.build_NE(i,j)
+            elif (i == self.n-1):
+                a,b = self.build_SE(i,j)
+            else:
+                a,b = self.build_east(i,j)
         elif (i == 0):
             a,b = self.build_north(i,j)
         elif (i == self.n-1):
