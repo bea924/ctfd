@@ -4,7 +4,7 @@ from ex3_basics import index, Coordinate2D, calculate_area, dx, dy, dist
 
 ###############################################################################
 class SteadyHeat2D_FVM():
-    def __init__(self, X, Y, boundary=[], TD=[], q=0.0, alpha=0.0, Tinf=0.0):
+    def __init__(self, X, Y, boundary=[], TD=[], q=10.0, alpha=5.0, Tinf=90.0):
         # i, j is the index of the cell
         # X, Y is the mesh
         # boundary is the boundary condition: 'TD', 'q', 'alpha', 'Tinf'
@@ -200,6 +200,7 @@ class SteadyHeat2D_FVM():
         return stencil,b
         
     
+######################################################################################################################################
     def build_north(self, i, j):
         stencil = np.zeros(self.n*self.m)
         b = 0
@@ -290,6 +291,8 @@ class SteadyHeat2D_FVM():
         return stencil,b
     
 
+    
+######################################################################################################################################
     def build_south(self, i, j):
         stencil = np.zeros(self.n*self.m)
         b = np.zeros(1)
@@ -381,6 +384,105 @@ class SteadyHeat2D_FVM():
         return stencil,b
 
     
+    
+######################################################################################################################################
+    def build_east(self, i, j):
+        stencil = np.zeros(self.n*self.m)
+        b = 0
+        if self.boundary[1] == 'D':
+            stencil[index(i, j, self.n)] = 1.0
+            b = self.TD[1]
+        else: 
+            # principle node coordinate
+            P = Coordinate2D(self.X[i, j], self.Y[i, j])
+            S = Coordinate2D(self.X[i+1, j], self.Y[i+1, j])
+            W = Coordinate2D(self.X[i, j-1], self.Y[i, j-1])
+            N = Coordinate2D(self.X[i-1, j], self.Y[i-1, j])
+            NW = Coordinate2D(self.X[i-1, j-1], self.Y[i-1, j-1])
+            SW = Coordinate2D(self.X[i+1, j-1], self.Y[i+1, j-1])
+
+            # auxiliary node coordinate
+            Sw = Coordinate2D((S.x + SW.x)/2, (S.y + SW.y)/2)
+            Nw = Coordinate2D((N.x + NW.x)/2, (N.y + NW.y)/2)
+            sW = Coordinate2D((W.x + SW.x)/2, (W.y + SW.y)/2)
+            nW = Coordinate2D((W.x + NW.x)/2, (W.y + NW.y)/2)
+
+            w = Coordinate2D((W.x + P.x)/2, (W.y + P.y)/2)
+            n = Coordinate2D((N.x + P.x)/2, (N.y + P.y)/2)
+            s = Coordinate2D((S.x + P.x)/2, (S.y + P.y)/2)
+
+            nw = Coordinate2D((NW.x + P.x)/2, (NW.y + P.y)/2)
+            sw = Coordinate2D((SW.x + P.x)/2, (SW.y + P.y)/2)
+
+            # calculate the area of the cell
+            W_ww = calculate_area(n, nw, sw, s)
+            W_w = calculate_area(n, Nw, Nw, s)
+            W_wwn = calculate_area(P, w, nW, W)
+            W_wws = calculate_area(S, Sw, w, P)
+
+
+            # East -> South
+            D3 = (dy(nw, sw) * (dy(sW, s) / 4) / W_w + dx(nw, sw) * (dx(sW, s) / 4) / W_w +
+                dy(sw, s) * (dy(w, Sw) / 4 + 3 * dy(Sw, S) / 4 + dy(S, P) / 2) / W_wws +
+                dx(sw, s) * (dx(w, Sw) / 4 + 3 * dx(Sw, S) / 4 + dx(S, P) / 2) / W_wws) / W_ww
+
+            # West -> North
+            D_3 = (dy(n, nw) * (3 * dy(N, Nw) / 4 + dy(Nw, w) / 4 + dy(P, N) / 2) / W_wwn +
+                dx(n, nw) * (3 * dx(N, Nw) / 4 + dx(Nw, w) / 4 + dx(P, N) / 2) / W_wwn +
+                dy(nw, sw) * (dy(n, nW) / 4) / W_w + dx(nw, sw) * (dx(n, nW) / 4) / W_w) / W_ww
+
+            # South -> West
+            D1 = (dy(n, nw) * (dy(Nw, w) / 4 + dy(w, P) / 4) / W_wwn +
+                dx(n, nw) * (dx(Nw, w) / 4 + dx(w, P) / 4) / W_wwn +
+                dy(nw, sw) * (dy(n, nW) / 4 + dy(nW, sW) + dy(sW, s) / 4) / W_w +
+                dx(nw, sw) * (dx(n, nW) / 4 + dx(nW, sW) + dx(sW, s) / 4) / W_w +
+                dy(sw, s) * (dy(P, w) / 4 + dy(w, Sw) / 4) / W_wws +
+                dx(sw, s) * (dx(P, w) / 4 + dx(w, Sw) / 4) / W_wws) / W_ww
+
+            # SW ->NW
+            D_2 = (dy(n, nw) * (dy(N, Nw) / 4 + dy(sW, s) / 4) / W_wwn +
+                dx(n, nw) * (dx(N, Nw) / 4 + dx(sW, s) / 4) / W_wwn +
+                dy(nw, sw) * (dy(n, nW) / 4) / W_w + dx(nw, sw) * (dx(n, nW) / 4) / W_w) / W_ww
+            
+            D_2 = (dy(w, sw) * (dy(W, sW) / 4 + dy(sW, s) / 4) / S_ssw +
+                dx(w, sw) * (dx(W, sW) / 4 + dx(sW, s) / 4) / S_ssw +
+                dy(sw, se) * (dy(w, Sw) / 4) / S_s + dx(sw, se) * (dx(w, Sw) / 4) / S_s) / S_ss
+
+            # SE -> SW
+            D4 = (dy(sw, sw) * (dy(Se, e) / 4) / W_w + dx(sw, sw) * (dx(Se, e) / 4) / W_w +
+                dy(sw, e) * (dy(s, sE) / 4 + dy(sE, E) / 4) / W_wws +
+                dx(sw, e) * (dx(s, sE) / 4 + dx(sE, E) / 4) / W_wws) / W_ww
+            
+            coefficient = 0.0
+            if self.boundary[1] == 'N':
+                coefficient = 0.0
+                b = self.q * dist(e, w) / W_ww
+            elif self.boundary[1] == 'R':
+                coefficient = - self.alpha
+                b = - self.alpha * self.Tinf * dist(n, s) / W_ww
+            else:
+                raise ValueError('Unknown boundary type: %s' % self.boundary[0])
+            
+            D0 = (coefficient * dist(e, w) +
+                dy(w, sw) * (dy(sW, s) / 4 + 3 * dy(s, P) / 4 + dy(P, W) / 2) / W_wwn +
+                dx(w, sw) * (dx(sW, s) / 4 + 3 * dx(s, P) / 4 + dx(P, W) / 2) / W_wwn +
+                dy(sw, se) * (dy(w, Sw) / 4 + dy(Se, e) / 4 + dy(e, w)) / S_s +
+                dx(sw, se) * (dx(w, Sw) / 4 + dx(Se, e) / 4 + dx(e, w)) / S_s +
+                dy(se, e) * (3 * dy(P, s) / 4 + dy(s, sE) / 4 + dy(E, P) / 2) / W_wws +
+                dx(se, e) * (3 * dx(P, s) / 4 + dx(s, sE) / 4 + dx(E, P) / 2) / W_wws) / W_ww
+            
+            stencil[index(i, j, self.n)] = D0
+            stencil[index(i+1, j, self.n)] = D1
+            stencil[index(i, j-1, self.n)] = D_3
+            stencil[index(i, j+1, self.n)] = D3
+            stencil[index(i+1, j-1, self.n)] = D_2
+            stencil[index(i+1, j+1, self.n)] = D4
+
+        return stencil,b
+    
+    
+    
+    
     # def build_south(self, i, j):
     #     stencil = np.zeros(self.n*self.m)
     #     b = np.zeros(1)
@@ -397,7 +499,7 @@ class SteadyHeat2D_FVM():
         stencil[index(i, j, self.n)] = 1.0
         b = self.TD[3]
         return stencil,b
-        
+            
     
     def build_east(self, i, j):
         stencil = np.zeros(self.n*self.m)

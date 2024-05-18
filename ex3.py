@@ -18,7 +18,7 @@ y = np.linspace(-1, 1, dim)
 X, Y = np.meshgrid(x, y)
 # X, Y = setUpMesh(n=dim, shape='linear')
 # [N E S W]
-dued = SteadyHeat2D_FVM(X, Y, boundary=['N', 'D', 'N', 'D'], TD=[5, 15, 5, 30])
+dued = SteadyHeat2D_FVM(X, Y, boundary=['D', 'N', 'D', 'D'], TD=[5, 5, 5, 100])
 
 solution = dued.solve()
 # dued.solve()
