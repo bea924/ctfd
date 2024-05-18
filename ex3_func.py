@@ -413,7 +413,7 @@ class SteadyHeat2D_FVM():
         b = np.zeros(1)
         if self.boundary[1] == 'D':
             stencil[index(i, j, self.n)] = 1.0
-            b = self.TD[1]
+            b = self.TD[3]
         return stencil,b
         
     
@@ -422,7 +422,7 @@ class SteadyHeat2D_FVM():
         b = np.zeros(1)
         if self.boundary[3] == 'D':
             stencil[index(i, j, self.n)] = 1.0
-            b = self.TD[3]
+            b = self.TD[1]
         return stencil,b
         
     
@@ -431,7 +431,7 @@ class SteadyHeat2D_FVM():
         b = np.zeros(1)
         if self.boundary[1] == 'D':
             stencil[index(i, j, self.n)] = 1.0
-            b = self.TD[1]
+            b = self.TD[3]
         return stencil,b
         
     
@@ -440,7 +440,7 @@ class SteadyHeat2D_FVM():
         b = np.zeros(1)
         if self.boundary[3] == 'D':
             stencil[index(i, j, self.n)] = 1.0
-            b = self.TD[3]
+            b = self.TD[1]
         return stencil,b
         
     
