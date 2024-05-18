@@ -415,10 +415,10 @@ class SteadyHeat2D_FVM():
             sw = Coordinate2D((SW.x + P.x)/2, (SW.y + P.y)/2)
 
             # calculate the area of the cell
-            W_ww = calculate_area(n, nw, sw, s)
-            W_w = calculate_area(n, Nw, Nw, s)
-            W_wwn = calculate_area(P, w, nW, W)
-            W_wws = calculate_area(S, Sw, w, P)
+            W_ww = calculate_area(n, s, sw, nw)
+            W_w = calculate_area(n, s, sW, nW)
+            W_wwn = calculate_area(N, P, w, Nw)
+            W_wws = calculate_area(P, S, Sw, w)
 
 
             # East -> South
