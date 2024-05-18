@@ -440,43 +440,40 @@ class SteadyHeat2D_FVM():
                 dx(sw, s) * (dx(P, w) / 4 + dx(w, Sw) / 4) / W_wws) / W_ww
 
             # SW ->NW
-            D_2 = (dy(n, nw) * (dy(N, Nw) / 4 + dy(sW, s) / 4) / W_wwn +
-                dx(n, nw) * (dx(N, Nw) / 4 + dx(sW, s) / 4) / W_wwn +
+            D_2 = (dy(n, nw) * (dy(N, Nw) / 4 + dy(Nw, w) / 4) / W_wwn +
+                dx(n, nw) * (dx(N, Nw) / 4 + dx(Nw, w) / 4) / W_wwn +
                 dy(nw, sw) * (dy(n, nW) / 4) / W_w + dx(nw, sw) * (dx(n, nW) / 4) / W_w) / W_ww
             
-            D_2 = (dy(w, sw) * (dy(W, sW) / 4 + dy(sW, s) / 4) / S_ssw +
-                dx(w, sw) * (dx(W, sW) / 4 + dx(sW, s) / 4) / S_ssw +
-                dy(sw, se) * (dy(w, Sw) / 4) / S_s + dx(sw, se) * (dx(w, Sw) / 4) / S_s) / S_ss
-
             # SE -> SW
-            D4 = (dy(sw, sw) * (dy(Se, e) / 4) / W_w + dx(sw, sw) * (dx(Se, e) / 4) / W_w +
-                dy(sw, e) * (dy(s, sE) / 4 + dy(sE, E) / 4) / W_wws +
-                dx(sw, e) * (dx(s, sE) / 4 + dx(sE, E) / 4) / W_wws) / W_ww
+            D4 = (dy(nw, sw) * (dy(sW, s) / 4) / W_w + dx(nw, sw) * (dx(sW, s) / 4) / W_w +
+                dy(sw, s) * (dy(w, Sw) / 4 + dy(Sw, S) / 4) / W_wws +
+                dx(sw, s) * (dx(w, Sw) / 4 + dx(Sw, S) / 4) / W_wws) / W_ww
             
             coefficient = 0.0
             if self.boundary[1] == 'N':
                 coefficient = 0.0
-                b = self.q * dist(e, w) / W_ww
+                b = self.q * dist(s, n) / W_ww
             elif self.boundary[1] == 'R':
                 coefficient = - self.alpha
                 b = - self.alpha * self.Tinf * dist(n, s) / W_ww
             else:
                 raise ValueError('Unknown boundary type: %s' % self.boundary[0])
             
-            D0 = (coefficient * dist(e, w) +
-                dy(w, sw) * (dy(sW, s) / 4 + 3 * dy(s, P) / 4 + dy(P, W) / 2) / W_wwn +
-                dx(w, sw) * (dx(sW, s) / 4 + 3 * dx(s, P) / 4 + dx(P, W) / 2) / W_wwn +
-                dy(sw, se) * (dy(w, Sw) / 4 + dy(Se, e) / 4 + dy(e, w)) / S_s +
-                dx(sw, se) * (dx(w, Sw) / 4 + dx(Se, e) / 4 + dx(e, w)) / S_s +
-                dy(se, e) * (3 * dy(P, s) / 4 + dy(s, sE) / 4 + dy(E, P) / 2) / W_wws +
-                dx(se, e) * (3 * dx(P, s) / 4 + dx(s, sE) / 4 + dx(E, P) / 2) / W_wws) / W_ww
+            D0 = (coefficient * dist(s, n) +
+                dy(n, nw) * (dy(Nw, w) / 4 + 3 * dy(w, P) / 4 + dy(P, N) / 2) / W_wwn +
+                dx(n, nw) * (dx(Nw, w) / 4 + 3 * dx(w, P) / 4 + dx(P, N) / 2) / W_wwn +
+                dy(nw, sw) * (dy(n, nW) / 4 + dy(sW, s) / 4 + dy(s, n)) / W_w +
+                dx(nw, sw) * (dx(n, nW) / 4 + dx(sW, s) / 4 + dx(s, n)) / W_w +
+                dy(sw, s) * (3 * dy(P, w) / 4 + dy(w, Sw) / 4 + dy(S, P) / 2) / W_wws +
+                dx(sw, s) * (3 * dx(P, w) / 4 + dx(w, Sw) / 4 + dx(S, P) / 2) / W_wws) / W_ww
+                       
             
             stencil[index(i, j, self.n)] = D0
-            stencil[index(i+1, j, self.n)] = D1
-            stencil[index(i, j-1, self.n)] = D_3
-            stencil[index(i, j+1, self.n)] = D3
-            stencil[index(i+1, j-1, self.n)] = D_2
-            stencil[index(i+1, j+1, self.n)] = D4
+            stencil[index(i, j-1, self.n)] = D1 #west
+            stencil[index(i-1, j, self.n)] = D_3 #north
+            stencil[index(i+1, j, self.n)] = D3 #south
+            stencil[index(i-1, j-1, self.n)] = D_2 #nw
+            stencil[index(i+1, j-1, self.n)] = D4 #sw
 
         return stencil,b
     
@@ -501,13 +498,13 @@ class SteadyHeat2D_FVM():
         return stencil,b
             
     
-    def build_east(self, i, j):
-        stencil = np.zeros(self.n*self.m)
-        b = np.zeros(1)
-        # if self.boundary[1] == 'D':
-        stencil[index(i, j, self.n)] = 1.0
-        b = self.TD[1]
-        return stencil,b
+    # def build_east(self, i, j):
+    #     stencil = np.zeros(self.n*self.m)
+    #     b = np.zeros(1)
+    #     # if self.boundary[1] == 'D':
+    #     stencil[index(i, j, self.n)] = 1.0
+    #     b = self.TD[1]
+    #     return stencil,b
         
     
     def build_NW(self, i, j):
@@ -550,4 +547,4 @@ class SteadyHeat2D_FVM():
         for i in range(self.n):
             for j in range(self.m):
                 self.set_stencil(i,j)
-        return np.linalg.solve(self.A, self.B)
+        # return np.linalg.solve(self.A, self.B)
