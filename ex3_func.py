@@ -510,36 +510,36 @@ class SteadyHeat2D_FVM():
     def build_NW(self, i, j):
         stencil = np.zeros(self.n*self.m)
         b = np.zeros(1)
-        if self.boundary[1] == 'D':
-            stencil[index(i, j, self.n)] = 1.0
-            b = self.TD[3]
+        # if self.boundary[1] == 'D':
+        stencil[index(i, j, self.n)] = 1.0
+        b = self.TD[3]
         return stencil,b
         
     
     def build_NE(self, i, j):
         stencil = np.zeros(self.n*self.m)
         b = np.zeros(1)
-        if self.boundary[3] == 'D':
-            stencil[index(i, j, self.n)] = 1.0
-            b = self.TD[1]
+        # if self.boundary[3] == 'D':
+        stencil[index(i, j, self.n)] = 1.0
+        b = self.TD[1]
         return stencil,b
         
     
     def build_SW(self, i, j):
         stencil = np.zeros(self.n*self.m)
         b = np.zeros(1)
-        if self.boundary[1] == 'D':
-            stencil[index(i, j, self.n)] = 1.0
-            b = self.TD[3]
+        # if self.boundary[1] == 'D':
+        stencil[index(i, j, self.n)] = 1.0
+        b = self.TD[3]
         return stencil,b
         
     
     def build_SE(self, i, j):
         stencil = np.zeros(self.n*self.m)
         b = np.zeros(1)
-        if self.boundary[3] == 'D':
-            stencil[index(i, j, self.n)] = 1.0
-            b = self.TD[1]
+        # if self.boundary[3] == 'D':
+        stencil[index(i, j, self.n)] = 1.0
+        b = self.TD[1]
         return stencil,b
         
     
@@ -547,4 +547,4 @@ class SteadyHeat2D_FVM():
         for i in range(self.n):
             for j in range(self.m):
                 self.set_stencil(i,j)
-        # return np.linalg.solve(self.A, self.B)
+        return np.linalg.solve(self.A, self.B)

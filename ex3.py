@@ -15,10 +15,10 @@ x = np.linspace(-1, 1, dim)
 y = np.linspace(-1, 1, dim)
 
 # Create the mesh grid
-X, Y = np.meshgrid(x, y)
-# X, Y = setUpMesh(n=dim, shape='linear')
+# X, Y = np.meshgrid(x, y)
+X, Y = setUpMesh(n=dim, shape='linear')
 # [N E S W]
-dued = SteadyHeat2D_FVM(X, Y, boundary=['D', 'N', 'D', 'D'], TD=[5, 5, 5, 100])
+dued = SteadyHeat2D_FVM(X, Y, boundary=['R', 'R', 'R', 'D'], TD=[5, 5, 5, 5])
 
 solution = dued.solve()
 # dued.solve()
@@ -32,14 +32,15 @@ matrix = solution.reshape((dim, dim))  # Replace this with your actual matrix
 c = pd.DataFrame(matrix)
 print(c)
 
-# Plot the matrix as a grid with colored squares
-plt.imshow(matrix, cmap='viridis')
-plt.colorbar()  # Add color bar for reference
-plt.show()
-
-# fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-# from matplotlib import cm
-# surf = ax.plot_surface(X, Y, matrix, cmap=cm.coolwarm,
-#                        linewidth=0, antialiased=False)
+# # Plot the matrix as a grid with colored squares
+# plt.imshow(matrix, cmap='viridis')
+# plt.colorbar()  # Add color bar for reference
 # plt.show()
+
+fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+from matplotlib import cm
+surf = ax.plot_surface(X, Y, matrix, cmap=cm.coolwarm,
+                       linewidth=0, antialiased=False)
+plt.show()
 # print(dued.B)
+print(X)
