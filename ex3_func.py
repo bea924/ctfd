@@ -459,6 +459,7 @@ class SteadyHeat2D_FVM():
             else:
                 raise ValueError('Unknown boundary type: %s' % self.boundary[0])
             
+            # check this again later
             D0 = (coefficient * dist(s, n) +
                 dy(n, nw) * (dy(Nw, w) / 4 + 3 * dy(w, P) / 4 + dy(P, N) / 2) / W_wwn +
                 dx(n, nw) * (dx(Nw, w) / 4 + 3 * dx(w, P) / 4 + dx(P, N) / 2) / W_wwn +
