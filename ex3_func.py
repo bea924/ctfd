@@ -375,6 +375,8 @@ class SteadyHeat2D_FVM():
                 dy(e, ne) * (3 * dy(n, P) / 4 + dy(nE, n) / 4 + dy(P, E) / 2) / N_nne +
                 dx(e, ne) * (3 * dx(n, P) / 4 + dx(nE, n) / 4 + dx(P, E) / 2) / N_nne) / N_nn
             
+            print("this is the south: " + str(D0))
+            
             stencil[index(i, j, self.n)] = D0
             stencil[index(i-1, j, self.n)] = D_1
             stencil[index(i, j-1, self.n)] = D_3
@@ -468,6 +470,8 @@ class SteadyHeat2D_FVM():
                 dx(nw, sw) * (dx(n, nW) / 4 + dx(sW, s) / 4 + dx(s, n)) / W_w +
                 dy(sw, s) * (3 * dy(P, w) / 4 + dy(w, Sw) / 4 + dy(S, P) / 2) / W_wws +
                 dx(sw, s) * (3 * dx(P, w) / 4 + dx(w, Sw) / 4 + dx(S, P) / 2) / W_wws) / W_ww
+            
+            print("this is east: " + str(D0))
                        
             
             stencil[index(i, j, self.n)] = D0
@@ -601,15 +605,15 @@ class SteadyHeat2D_FVM():
             #we will need D_3 and D_1 for the west and north respectively
 
             # North
-            D_1 = (dy(w, nw) * (dy(nW, n) / 4 + dy(n, P) / 4) / S_etaW +
-                dx(w, nw) * (dx(nW, n) / 4 + dx(n, P) / 4) / S_etaW +
-                dy(nw, n) * (dy(N, P) / 4 + dy(Nw, N) + dy(w, Nw) / 4) / S_etaN +
-                dx(nw, n) * (dx(N, P) / 4 + dx(Nw, N) + dx(w, Nw) / 4) / S_etaN) / S_etaomega
+            D_1 = (dy(nw, w) * (dy(n, nW) / 4 + dy(P, n) / 4) / S_etaW +
+                dx(nw, w) * (dx(n, nW) / 4 + dx(P, n) / 4) / S_etaW +
+                dy(n, nw) * (dy(P, N) / 4 + dy(N, Nw) + dy(Nw, w) / 4) / S_etaN +
+                dx(n, nw) * (dx(P, N) / 4 + dx(N, Nw) + dx(Nw, w) / 4) / S_etaN) / S_etaomega
 
             # West
-            D_3 = (dy(w, nw) * (3 * dy(W, nW) / 4 + dy(nW, n) / 4 + dy(P, W) / 2) / S_etaW +
-                dx(w, nw) * (3 * dx(W, nW) / 4 + dx(nW, n) / 4 + dx(P, W) / 2) / S_etaW +
-                dy(nw, n) * (dy(w, Nw) / 4) / S_etaN + dx(nw, n) * (dx(w, Nw) / 4) / S_etaN) / S_etaomega
+            D_3 = (dy(nw, w) * (3 * dy(nW, W) / 4 + dy(n, nW) / 4 + dy(W, P) / 2) / S_etaW +
+                dx(nw, w) * (3 * dx(nW, W) / 4 + dx(n, nW) / 4 + dx(W, P) / 2) / S_etaW +
+                dy(n, nw) * (dy(Nw, w) / 4) / S_etaN + dx(n, nw) * (dx(Nw, w) / 4) / S_etaN) / S_etaomega
 
             coefficient1 = 0.0
             coefficient2 = 0.0
@@ -624,15 +628,17 @@ class SteadyHeat2D_FVM():
                 b = self.q * (dist(w, P)) / S_etaomega
             elif self.boundary[2] == 'R':
                 coefficient2 = - self.alpha
-                b = -self.alpha * self.Tinf * dist(w, P)/ S_etaomega
+                b = - self.alpha * self.Tinf * dist(w, P)/ S_etaomega
             else:
                 raise ValueError('Unknown boundary type: %s' % self.boundary[2])
             
             D0 = (coefficient1 * dist(P, n) + coefficient2 * dist(w, P) +
-                dy(nw, n) * (dy(P, w) / 2 + dy(N, P) / 2 + 3 * dy(w, Nw) / 4) / S_etaN +
-                dx(nw, n) * (dx(P, w) / 2 + dx(N, P) / 2 + 3 * dx(w, Nw) / 4) / S_etaN +
-                dy(w, nw) * (dy(P, W) / 2 + 3 * dy(n, P) / 4 + dy(nW, n)/4) / S_etaW +
-                dx(w, nw) * (dx(P, W) / 2 + 3 * dx(n, P) / 4 + dx(nW, n)/4) / S_etaW) / S_etaomega
+                dy(n, nw) * (dy(w, P) / 2 + dy(P, N) / 2 + 3 * dy(Nw, w) / 4) / S_etaN +
+                dx(n, nw) * (dx(w, P) / 2 + dx(P, N) / 2 + 3 * dx(Nw, w) / 4) / S_etaN +
+                dy(nw, w) * (dy(W, P) / 2 + 3 * dy(P, n) / 4 + dy(n, nW)/4) / S_etaW +
+                dx(nw, w) * (dx(W, P) / 2 + 3 * dx(P, n) / 4 + dx(n, nW)/4) / S_etaW) / S_etaomega
+            
+            print("help:" + str(D0))
                 
             stencil[index(i, j, self.n)] = D0
             stencil[index(i-1, j, self.n)] = D_1
