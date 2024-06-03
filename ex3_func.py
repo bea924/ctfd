@@ -364,7 +364,7 @@ class SteadyHeat2D_FVM():
                 coefficient = - self.alpha
                 b = - self.alpha * self.Tinf * (dist(e, w)) / N_nn
             else:
-                raise ValueError('Unknown boundary type: %s' % self.boundary[0])
+                raise ValueError('Unknown boundary type: %s' % self.boundary[2])
             
             D0 = (coefficient * dist(e, w) +
                 dy(w, nw) * (dy(nW, n) / 4 + 3 * dy(n, P) / 4 + dy(P, W) / 2) / N_nnw +
@@ -457,7 +457,7 @@ class SteadyHeat2D_FVM():
                 coefficient = - self.alpha
                 b = - self.alpha * self.Tinf * dist(n, s) / W_ww
             else:
-                raise ValueError('Unknown boundary type: %s' % self.boundary[0])
+                raise ValueError('Unknown boundary type: %s' % self.boundary[1])
             
             # check this again later
             D0 = (coefficient * dist(s, n) +
@@ -520,9 +520,35 @@ class SteadyHeat2D_FVM():
     def build_NE(self, i, j):
         stencil = np.zeros(self.n*self.m)
         b = np.zeros(1)
-        # if self.boundary[3] == 'D':
-        stencil[index(i, j, self.n)] = 1.0
-        b = self.TD[1]
+        if self.boundary[1] == 'D':
+            stencil[index(i, j, self.n)] = 1.0
+            b = self.TD[1]
+        else:
+            # principle node coordinate
+            P = Coordinate2D(self.X[i, j], self.Y[i, j])
+            S = Coordinate2D(self.X[i+1, j], self.Y[i+1, j])
+            W = Coordinate2D(self.X[i, j-1], self.Y[i, j-1])
+            SW = Coordinate2D(self.X[i+1, j-1], self.Y[i+1, j-1])
+
+            # auxiliary node coordinate
+            Sw = Coordinate2D((S.x + SW.x)/2, (S.y + SW.y)/2)
+            sW = Coordinate2D((W.x + SW.x)/2, (W.y + SW.y)/2)
+
+            s = Coordinate2D((S.x + P.x)/2, (S.y + P.y)/2)
+            w = Coordinate2D((W.x + P.x)/2, (W.y + P.y)/2)
+
+            sw = Coordinate2D((Sw.x + w.x)/2, (Sw.y + w.y)/2)
+            sigma = Coordinate2D((s.x + P.x)/2, (s.y + P.y)/2)
+            omega = Coordinate2D((w.x + P.x)/2, (w.y  + P.y)/2)
+            sigmaomega = Coordinate2D((omega.x + sigma.x)/2, (omega.y + sigma.y)/2)
+            sigmaw = Coordinate2D((sigma.x + w.x)/2, (sigma.y + w.y)/2)
+            somega = Coordinate2D((s.x + omega.x)/2 , (s.y + omega.y)/2)
+                        
+            if self.boundary[1] == 'N':
+                stencil[index(i, j, self.n)] = -2
+                stencil[index(i-1, j, self.n)] = 1
+                stencil[index(i, j-1, self.n)] = 1
+                b = self.q
         return stencil,b
         
     
