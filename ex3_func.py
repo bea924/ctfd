@@ -329,32 +329,33 @@ class SteadyHeat2D_FVM():
 
 
             # East
-            D3 = (dy(nw, ne) * (dy(Ne, e) / 4) / N_n + dx(nw, ne) * (dx(Ne, e) / 4) / N_n +
-                dy(ne, e) * (dy(n, nE) / 4 + 3 * dy(nE, E) / 4 + dy(E, P) / 2) / N_nne +
-                dx(ne, e) * (dx(n, nE) / 4 + 3 * dx(nE, E) / 4 + dx(E, P) / 2) / N_nne) / N_nn
+            D3 = (dy(ne, nw) * (dy(e, Ne) / 4) / N_n + dx(ne, nw) * (dx(e, Ne) / 4) / N_n +
+                dy(e, ne) * (dy(nE, n) / 4 + 3 * dy(E, nE) / 4 + dy(P, E) / 2) / N_nne +
+                dx(e, ne) * (dx(nE, n) / 4 + 3 * dx(E, nE) / 4 + dx(P, E) / 2) / N_nne) / N_nn
 
             # West
-            D_3 = (dy(w, nw) * (3 * dy(W, nW) / 4 + dy(nW, n) / 4 + dy(P, W) / 2) / N_nnw +
-                dx(w, nw) * (3 * dx(W, nW) / 4 + dx(nW, n) / 4 + dx(P, W) / 2) / N_nnw +
-                dy(nw, ne) * (dy(w, Nw) / 4) / N_n + dx(nw, ne) * (dx(w, Nw) / 4) / N_n) / N_nn
+            D_3 = (dy(nw, w) * (3 * dy(nW, W) / 4 + dy(n, nW) / 4 + dy(W, P) / 2) / N_nnw +
+                dx(nw, w) * (3 * dx(nW, W) / 4 + dx(n, nW) / 4 + dx(W, P) / 2) / N_nnw +
+                dy(ne, nw) * (dy(Nw, w) / 4) / N_n + dx(ne, nw) * (dx(Nw, w) / 4) / N_n) / N_nn
 
             # North
-            D_1 = (dy(w, nw) * (dy(nW, n) / 4 + dy(n, P) / 4) / N_nnw +
-                dx(w, nw) * (dx(nW, n) / 4 + dx(n, P) / 4) / N_nnw +
-                dy(nw, ne) * (dy(w, Nw) / 4 + dy(Nw, Ne) + dy(Ne, e) / 4) / N_n +
-                dx(nw, ne) * (dx(w, Nw) / 4 + dx(Nw, Ne) + dx(Ne, e) / 4) / N_n +
-                dy(ne, e) * (dy(P, n) / 4 + dy(n, nE) / 4) / N_nne +
-                dx(ne, e) * (dx(P, n) / 4 + dx(n, nE) / 4) / N_nne) / N_nn
-
-            # NW
-            D2 = (dy(w, nw) * (dy(W, nW) / 4 + dy(nW, n) / 4) / N_nnw +
-                dx(w, nw) * (dx(W, nW) / 4 + dx(nW, n) / 4) / N_nnw +
-                dy(nw, ne) * (dy(w, Nw) / 4) / N_n + dx(nw, ne) * (dx(w, Nw) / 4) / N_n) / N_nn
+            D_1 = (dy(nw, w) * (dy(n, nW) / 4 + dy(P, n) / 4) / N_nnw +
+                dx(nw, w) * (dx(n, nW) / 4 + dx(P, n) / 4) / N_nnw +
+                dy(ne, nw) * (dy(Nw, w) / 4 + dy(Ne, Nw) + dy(e, Ne) / 4) / N_n +
+                dx(ne, nw) * (dx(Nw, w) / 4 + dx(Ne, Nw) + dx(e, Ne) / 4) / N_n +
+                dy(e, ne) * (dy(n, P) / 4 + dy(nE, n) / 4) / N_nne +
+                dx(e, ne) * (dx(n, P) / 4 + dx(nE, n) / 4) / N_nne) / N_nn
 
             # NE
-            D_4 = (dy(nw, ne) * (dy(Ne, e) / 4) / N_n + dx(nw, ne) * (dx(Ne, e) / 4) / N_n +
-                dy(ne, e) * (dy(n, nE) / 4 + dy(nE, E) / 4) / N_nne +
-                dx(ne, e) * (dx(n, nE) / 4 + dx(nE, E) / 4) / N_nne) / N_nn
+            D2 = (dy(ne, nw) * (dy(e, Ne) / 4) / N_n + dx(ne, nw) * (dx(e, Ne) / 4) / N_n +
+                dy(e, ne) * (dy(nE, n) / 4 + dy(E, nE) / 4) / N_nne +
+                dx(e, ne) * (dx(nE, n) / 4 + dx(E, nE) / 4) / N_nne) / N_nn
+            
+
+            # NW
+            D_4 = (dy(nw, w) * (dy(nW, W) / 4 + dy(n, nW) / 4) / N_nnw +
+                dx(nw, w) * (dx(nW, W) / 4 + dx(n, nW) / 4) / N_nnw +
+                dy(ne, nw) * (dy(Nw, w) / 4) / N_n + dx(ne, nw) * (dx(Nw, w) / 4) / N_n) / N_nn 
             
             coefficient = 0.0
             if self.boundary[2] == 'N':
@@ -367,19 +368,19 @@ class SteadyHeat2D_FVM():
                 raise ValueError('Unknown boundary type: %s' % self.boundary[2])
             
             D0 = (coefficient * dist(e, w) +
-                dy(w, nw) * (dy(nW, n) / 4 + 3 * dy(n, P) / 4 + dy(P, W) / 2) / N_nnw +
-                dx(w, nw) * (dx(nW, n) / 4 + 3 * dx(n, P) / 4 + dx(P, W) / 2) / N_nnw +
-                dy(nw, ne) * (dy(w, Nw) / 4 + dy(Ne, e) / 4 + dy(e, w)) / N_n +
-                dx(nw, ne) * (dx(w, Nw) / 4 + dx(Ne, e) / 4 + dx(e, w)) / N_n +
-                dy(ne, e) * (3 * dy(P, n) / 4 + dy(n, nE) / 4 + dy(E, P) / 2) / N_nne +
-                dx(ne, e) * (3 * dx(P, n) / 4 + dx(n, nE) / 4 + dx(E, P) / 2) / N_nne) / N_nn
+                dy(nw, w) * (dy(n, nW) / 4 + 3 * dy(P ,n) / 4 + dy(W, P) / 2) / N_nnw +
+                dx(nw, w) * (dx(n, nW) / 4 + 3 * dx(P, n) / 4 + dx(W, P) / 2) / N_nnw +
+                dy(ne, nw) * (dy(Nw, w) / 4 + dy(e, Ne) / 4 + dy(w, e)) / N_n +
+                dx(ne, nw) * (dx(Nw, w) / 4 + dx(e, Ne) / 4 + dx(w, e)) / N_n +
+                dy(e, ne) * (3 * dy(n, P) / 4 + dy(nE, n) / 4 + dy(P, E) / 2) / N_nne +
+                dx(e, ne) * (3 * dx(n, P) / 4 + dx(nE, n) / 4 + dx(P, E) / 2) / N_nne) / N_nn
             
             stencil[index(i, j, self.n)] = D0
             stencil[index(i-1, j, self.n)] = D_1
             stencil[index(i, j-1, self.n)] = D_3
             stencil[index(i, j+1, self.n)] = D3
-            stencil[index(i-1, j-1, self.n)] = D2
-            stencil[index(i-1, j+1, self.n)] = D_4
+            stencil[index(i-1, j+1, self.n)] = D2
+            stencil[index(i-1, j-1, self.n)] = D_4
 
         return stencil,b
 
@@ -614,20 +615,20 @@ class SteadyHeat2D_FVM():
             coefficient2 = 0.0
             if self.boundary[1] == 'N': #east boundary
                 coefficient1 = 0.0 
-                b = self.q * (dist(n, P)) / S_etaomega
+                b = self.q * (dist(P, n)) / S_etaomega
             elif self.boundary[1] == 'R':
                 coefficient1 = - self.alpha
-                b = - self.alpha * self.Tinf * (dist(n, P)) / S_etaomega
+                b = - self.alpha * self.Tinf * (dist(P, n)) / S_etaomega
             if self.boundary[2] == 'N': #south boundary
                 coefficient2 = 0.0
-                b = self.q * (dist(P, w)) / S_etaomega
+                b = self.q * (dist(w, P)) / S_etaomega
             elif self.boundary[2] == 'R':
                 coefficient2 = - self.alpha
-                b = -self.alpha * self.Tinf * dist(P, w)/ S_etaomega
+                b = -self.alpha * self.Tinf * dist(w, P)/ S_etaomega
             else:
                 raise ValueError('Unknown boundary type: %s' % self.boundary[2])
             
-            D0 = (coefficient1 * dist(n, P) + coefficient2 * dist(P, w) +
+            D0 = (coefficient1 * dist(P, n) + coefficient2 * dist(w, P) +
                 dy(nw, n) * (dy(P, w) / 2 + dy(N, P) / 2 + 3 * dy(w, Nw) / 4) / S_etaN +
                 dx(nw, n) * (dx(P, w) / 2 + dx(N, P) / 2 + 3 * dx(w, Nw) / 4) / S_etaN +
                 dy(w, nw) * (dy(P, W) / 2 + 3 * dy(n, P) / 4 + dy(nW, n)/4) / S_etaW +
