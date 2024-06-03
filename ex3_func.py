@@ -520,35 +520,35 @@ class SteadyHeat2D_FVM():
     def build_NE(self, i, j):
         stencil = np.zeros(self.n*self.m)
         b = np.zeros(1)
-        if self.boundary[1] == 'D':
-            stencil[index(i, j, self.n)] = 1.0
-            b = self.TD[1]
-        else:
-            # principle node coordinate
-            P = Coordinate2D(self.X[i, j], self.Y[i, j])
-            S = Coordinate2D(self.X[i+1, j], self.Y[i+1, j])
-            W = Coordinate2D(self.X[i, j-1], self.Y[i, j-1])
-            SW = Coordinate2D(self.X[i+1, j-1], self.Y[i+1, j-1])
+        # if self.boundary[1] == 'D':
+        stencil[index(i, j, self.n)] = 1.0
+        b = self.TD[1]
+        # else:
+        #     # principle node coordinate
+        #     P = Coordinate2D(self.X[i, j], self.Y[i, j])
+        #     S = Coordinate2D(self.X[i+1, j], self.Y[i+1, j])
+        #     W = Coordinate2D(self.X[i, j-1], self.Y[i, j-1])
+        #     SW = Coordinate2D(self.X[i+1, j-1], self.Y[i+1, j-1])
 
-            # auxiliary node coordinate
-            Sw = Coordinate2D((S.x + SW.x)/2, (S.y + SW.y)/2)
-            sW = Coordinate2D((W.x + SW.x)/2, (W.y + SW.y)/2)
+        #     # auxiliary node coordinate
+        #     Sw = Coordinate2D((S.x + SW.x)/2, (S.y + SW.y)/2)
+        #     sW = Coordinate2D((W.x + SW.x)/2, (W.y + SW.y)/2)
 
-            s = Coordinate2D((S.x + P.x)/2, (S.y + P.y)/2)
-            w = Coordinate2D((W.x + P.x)/2, (W.y + P.y)/2)
+        #     s = Coordinate2D((S.x + P.x)/2, (S.y + P.y)/2)
+        #     w = Coordinate2D((W.x + P.x)/2, (W.y + P.y)/2)
 
-            sw = Coordinate2D((Sw.x + w.x)/2, (Sw.y + w.y)/2)
-            sigma = Coordinate2D((s.x + P.x)/2, (s.y + P.y)/2)
-            omega = Coordinate2D((w.x + P.x)/2, (w.y  + P.y)/2)
-            sigmaomega = Coordinate2D((omega.x + sigma.x)/2, (omega.y + sigma.y)/2)
-            sigmaw = Coordinate2D((sigma.x + w.x)/2, (sigma.y + w.y)/2)
-            somega = Coordinate2D((s.x + omega.x)/2 , (s.y + omega.y)/2)
+        #     sw = Coordinate2D((Sw.x + w.x)/2, (Sw.y + w.y)/2)
+        #     sigma = Coordinate2D((s.x + P.x)/2, (s.y + P.y)/2)
+        #     omega = Coordinate2D((w.x + P.x)/2, (w.y  + P.y)/2)
+        #     sigmaomega = Coordinate2D((omega.x + sigma.x)/2, (omega.y + sigma.y)/2)
+        #     sigmaw = Coordinate2D((sigma.x + w.x)/2, (sigma.y + w.y)/2)
+        #     somega = Coordinate2D((s.x + omega.x)/2 , (s.y + omega.y)/2)
                         
-            if self.boundary[1] == 'N':
-                stencil[index(i, j, self.n)] = -2
-                stencil[index(i-1, j, self.n)] = 1
-                stencil[index(i, j-1, self.n)] = 1
-                b = self.q
+        #     if self.boundary[1] == 'N':
+        #         stencil[index(i, j, self.n)] = -2
+        #         stencil[index(i-1, j, self.n)] = 1
+        #         stencil[index(i, j-1, self.n)] = 1
+        #         b = self.q
         return stencil,b
         
     
@@ -564,9 +564,79 @@ class SteadyHeat2D_FVM():
     def build_SE(self, i, j):
         stencil = np.zeros(self.n*self.m)
         b = np.zeros(1)
-        # if self.boundary[3] == 'D':
-        stencil[index(i, j, self.n)] = 1.0
-        b = self.TD[1]
+        if self.boundary[2] == 'D':
+            stencil[index(i, j, self.n)] = 1.0
+            b = self.TD[2]
+        
+        else:
+            # principle node coordinate
+            P = Coordinate2D(self.X[i, j], self.Y[i, j])
+            N = Coordinate2D(self.X[i-1, j], self.Y[i-1, j])
+            W = Coordinate2D(self.X[i, j-1], self.Y[i, j-1])
+            NW = Coordinate2D(self.X[i-1, j-1], self.Y[i-1, j-1])
+
+            # auxiliary node coordinate
+            Nw = Coordinate2D((N.x + NW.x)/2, (N.y + NW.y)/2)
+            nW = Coordinate2D((W.x + NW.x)/2, (W.y + NW.y)/2)
+
+            n = Coordinate2D((N.x + P.x)/2, (N.y + P.y)/2)
+            w = Coordinate2D((W.x + P.x)/2, (W.y + P.y)/2)
+
+            nw = Coordinate2D((Nw.x + w.x)/2, (Nw.y + w.y)/2)
+            eta = Coordinate2D((n.x + P.x)/2, (n.y + P.y)/2)
+            omega = Coordinate2D((w.x + P.x)/2, (w.y  + P.y)/2)
+            nomega = Coordinate2D((nw.x + n.x)/2, (nw.y + n.y)/2)
+            etaw = Coordinate2D((nw.x + w.x)/2, (nw.y + w.y)/2)
+            etaomega = Coordinate2D((nomega.x + omega.x)/2, (nomega.y + omega.y)/2)
+
+            Nomega = Coordinate2D((N.x + Nw.x)/2, (N.y + Nw.y)/2)
+            etaW = Coordinate2D((nW.x + W.x)/2, (nW.y + W.y)/2)
+
+            #calculate areas
+            S_etaomega = calculate_area(n, P, w, nw)
+            S_etaW = calculate_area(n, P, W, nW)
+            S_etaN = calculate_area(N, P, w, Nw)
+
+            #we will need D_3 and D_1 for the west and north respectively
+
+            # North
+            D_1 = (dy(w, nw) * (dy(nW, n) / 4 + dy(n, P) / 4) / S_etaW +
+                dx(w, nw) * (dx(nW, n) / 4 + dx(n, P) / 4) / S_etaW +
+                dy(nw, n) * (dy(N, P) / 4 + dy(Nw, N) + dy(w, Nw) / 4) / S_etaN +
+                dx(nw, n) * (dx(N, P) / 4 + dx(Nw, N) + dx(w, Nw) / 4) / S_etaN) / S_etaomega
+
+            # West
+            D_3 = (dy(w, nw) * (3 * dy(W, nW) / 4 + dy(nW, n) / 4 + dy(P, W) / 2) / S_etaW +
+                dx(w, nw) * (3 * dx(W, nW) / 4 + dx(nW, n) / 4 + dx(P, W) / 2) / S_etaW +
+                dy(nw, n) * (dy(w, Nw) / 4) / S_etaN + dx(nw, n) * (dx(w, Nw) / 4) / S_etaN) / S_etaomega
+
+            coefficient1 = 0.0
+            coefficient2 = 0.0
+            if self.boundary[1] == 'N': #east boundary
+                coefficient1 = 0.0 
+                b = self.q * (dist(n, P)) / S_etaomega
+            elif self.boundary[1] == 'R':
+                coefficient1 = - self.alpha
+                b = - self.alpha * self.Tinf * (dist(n, P)) / S_etaomega
+            if self.boundary[2] == 'N': #south boundary
+                coefficient2 = 0.0
+                b = self.q * (dist(P, w)) / S_etaomega
+            elif self.boundary[2] == 'R':
+                coefficient2 = - self.alpha
+                b = -self.alpha * self.Tinf * dist(P, w)/ S_etaomega
+            else:
+                raise ValueError('Unknown boundary type: %s' % self.boundary[2])
+            
+            D0 = (coefficient1 * dist(n, P) + coefficient2 * dist(P, w) +
+                dy(nw, n) * (dy(P, w) / 2 + dy(N, P) / 2 + 3 * dy(w, Nw) / 4) / S_etaN +
+                dx(nw, n) * (dx(P, w) / 2 + dx(N, P) / 2 + 3 * dx(w, Nw) / 4) / S_etaN +
+                dy(w, nw) * (dy(P, W) / 2 + 3 * dy(n, P) / 4 + dy(nW, n)/4) / S_etaW +
+                dx(w, nw) * (dx(P, W) / 2 + 3 * dx(n, P) / 4 + dx(nW, n)/4) / S_etaW) / S_etaomega
+                
+            stencil[index(i, j, self.n)] = D0
+            stencil[index(i-1, j, self.n)] = D_1
+            stencil[index(i, j-1, self.n)] = D_3
+        
         return stencil,b
         
     
