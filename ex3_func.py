@@ -322,60 +322,60 @@ class SteadyHeat2D_FVM():
             nw = Coordinate2D((Nw.x + w.x)/2, (Nw.y + w.y)/2)
 
             # calculate the area of the cell
-            N_nn = calculate_area(ne, e, w, nw)
-            N_n = calculate_area(Ne, e, w, Nw)
-            N_nnw = calculate_area(n, P, W, nW)
-            N_nne = calculate_area(nE, E, P, n)
+            S_nn = calculate_area(ne, e, w, nw)
+            S_n = calculate_area(Ne, e, w, Nw)
+            S_nnw = calculate_area(n, P, W, nW)
+            S_nne = calculate_area(nE, E, P, n)
 
 
             # East
-            D3 = (dy(ne, nw) * (dy(e, Ne) / 4) / N_n + dx(ne, nw) * (dx(e, Ne) / 4) / N_n +
-                dy(e, ne) * (dy(nE, n) / 4 + 3 * dy(E, nE) / 4 + dy(P, E) / 2) / N_nne +
-                dx(e, ne) * (dx(nE, n) / 4 + 3 * dx(E, nE) / 4 + dx(P, E) / 2) / N_nne) / N_nn
+            D3 = (dy(ne, nw) * (dy(e, Ne) / 4) / S_n + dx(ne, nw) * (dx(e, Ne) / 4) / S_n +
+                dy(e, ne) * (dy(nE, n) / 4 + 3 * dy(E, nE) / 4 + dy(P, E) / 2) / S_nne +
+                dx(e, ne) * (dx(nE, n) / 4 + 3 * dx(E, nE) / 4 + dx(P, E) / 2) / S_nne) / S_nn
 
             # West
-            D_3 = (dy(nw, w) * (3 * dy(nW, W) / 4 + dy(n, nW) / 4 + dy(W, P) / 2) / N_nnw +
-                dx(nw, w) * (3 * dx(nW, W) / 4 + dx(n, nW) / 4 + dx(W, P) / 2) / N_nnw +
-                dy(ne, nw) * (dy(Nw, w) / 4) / N_n + dx(ne, nw) * (dx(Nw, w) / 4) / N_n) / N_nn
+            D_3 = (dy(nw, w) * (3 * dy(nW, W) / 4 + dy(n, nW) / 4 + dy(W, P) / 2) / S_nnw +
+                dx(nw, w) * (3 * dx(nW, W) / 4 + dx(n, nW) / 4 + dx(W, P) / 2) / S_nnw +
+                dy(ne, nw) * (dy(Nw, w) / 4) / S_n + dx(ne, nw) * (dx(Nw, w) / 4) / S_n) / S_nn
 
             # North
-            D_1 = (dy(nw, w) * (dy(n, nW) / 4 + dy(P, n) / 4) / N_nnw +
-                dx(nw, w) * (dx(n, nW) / 4 + dx(P, n) / 4) / N_nnw +
-                dy(ne, nw) * (dy(Nw, w) / 4 + dy(Ne, Nw) + dy(e, Ne) / 4) / N_n +
-                dx(ne, nw) * (dx(Nw, w) / 4 + dx(Ne, Nw) + dx(e, Ne) / 4) / N_n +
-                dy(e, ne) * (dy(n, P) / 4 + dy(nE, n) / 4) / N_nne +
-                dx(e, ne) * (dx(n, P) / 4 + dx(nE, n) / 4) / N_nne) / N_nn
+            D_1 = (dy(nw, w) * (dy(n, nW) / 4 + dy(P, n) / 4) / S_nnw +
+                dx(nw, w) * (dx(n, nW) / 4 + dx(P, n) / 4) / S_nnw +
+                dy(ne, nw) * (dy(Nw, w) / 4 + dy(Ne, Nw) + dy(e, Ne) / 4) / S_n +
+                dx(ne, nw) * (dx(Nw, w) / 4 + dx(Ne, Nw) + dx(e, Ne) / 4) / S_n +
+                dy(e, ne) * (dy(n, P) / 4 + dy(nE, n) / 4) / S_nne +
+                dx(e, ne) * (dx(n, P) / 4 + dx(nE, n) / 4) / S_nne) / S_nn
 
             # NE
-            D2 = (dy(ne, nw) * (dy(e, Ne) / 4) / N_n + dx(ne, nw) * (dx(e, Ne) / 4) / N_n +
-                dy(e, ne) * (dy(nE, n) / 4 + dy(E, nE) / 4) / N_nne +
-                dx(e, ne) * (dx(nE, n) / 4 + dx(E, nE) / 4) / N_nne) / N_nn
+            D2 = (dy(ne, nw) * (dy(e, Ne) / 4) / S_n + dx(ne, nw) * (dx(e, Ne) / 4) / S_n +
+                dy(e, ne) * (dy(nE, n) / 4 + dy(E, nE) / 4) / S_nne +
+                dx(e, ne) * (dx(nE, n) / 4 + dx(E, nE) / 4) / S_nne) / S_nn
             
 
             # NW
-            D_4 = (dy(nw, w) * (dy(nW, W) / 4 + dy(n, nW) / 4) / N_nnw +
-                dx(nw, w) * (dx(nW, W) / 4 + dx(n, nW) / 4) / N_nnw +
-                dy(ne, nw) * (dy(Nw, w) / 4) / N_n + dx(ne, nw) * (dx(Nw, w) / 4) / N_n) / N_nn 
+            D_4 = (dy(nw, w) * (dy(nW, W) / 4 + dy(n, nW) / 4) / S_nnw +
+                dx(nw, w) * (dx(nW, W) / 4 + dx(n, nW) / 4) / S_nnw +
+                dy(ne, nw) * (dy(Nw, w) / 4) / S_n + dx(ne, nw) * (dx(Nw, w) / 4) / S_n) / S_nn 
             
             coefficient = 0.0
             if self.boundary[2] == 'N':
                 coefficient = 0.0
-                b = self.q * (dist(e, w)) / N_nn
+                b = self.q * (dist(e, w)) / S_nn
             elif self.boundary[2] == 'R':
                 coefficient = - self.alpha
-                b = - self.alpha * self.Tinf * (dist(e, w)) / N_nn
+                b = - self.alpha * self.Tinf * (dist(e, w)) / S_nn
             else:
                 raise ValueError('Unknown boundary type: %s' % self.boundary[2])
             
             D0 = (coefficient * dist(e, w) +
-                dy(nw, w) * (dy(n, nW) / 4 + 3 * dy(P ,n) / 4 + dy(W, P) / 2) / N_nnw +
-                dx(nw, w) * (dx(n, nW) / 4 + 3 * dx(P, n) / 4 + dx(W, P) / 2) / N_nnw +
-                dy(ne, nw) * (dy(Nw, w) / 4 + dy(e, Ne) / 4 + dy(w, e)) / N_n +
-                dx(ne, nw) * (dx(Nw, w) / 4 + dx(e, Ne) / 4 + dx(w, e)) / N_n +
-                dy(e, ne) * (3 * dy(n, P) / 4 + dy(nE, n) / 4 + dy(P, E) / 2) / N_nne +
-                dx(e, ne) * (3 * dx(n, P) / 4 + dx(nE, n) / 4 + dx(P, E) / 2) / N_nne) / N_nn
+                dy(nw, w) * (dy(n, nW) / 4 + 3 * dy(P ,n) / 4 + dy(W, P) / 2) / S_nnw +
+                dx(nw, w) * (dx(n, nW) / 4 + 3 * dx(P, n) / 4 + dx(W, P) / 2) / S_nnw +
+                dy(ne, nw) * (dy(Nw, w) / 4 + dy(e, Ne) / 4 + dy(w, e)) / S_n +
+                dx(ne, nw) * (dx(Nw, w) / 4 + dx(e, Ne) / 4 + dx(w, e)) / S_n +
+                dy(e, ne) * (3 * dy(n, P) / 4 + dy(nE, n) / 4 + dy(P, E) / 2) / S_nne +
+                dx(e, ne) * (3 * dx(n, P) / 4 + dx(nE, n) / 4 + dx(P, E) / 2) / S_nne) / S_nn
             
-            print("this is the south: " + str(D0))
+            print("this is the south [" + str(i) +"][" + str(j) + "]: " + str(D0) + ", " + str(D_1) + ", " + str(D_3) + ", " + str(D3) + ", " + str(D2) + ", " + str(D_4))
             
             stencil[index(i, j, self.n)] = D0
             stencil[index(i-1, j, self.n)] = D_1
@@ -418,60 +418,60 @@ class SteadyHeat2D_FVM():
             sw = Coordinate2D((SW.x + P.x)/2, (SW.y + P.y)/2)
 
             # calculate the area of the cell
-            W_ww = calculate_area(n, s, sw, nw)
-            W_w = calculate_area(n, s, sW, nW)
-            W_wwn = calculate_area(N, P, w, Nw)
-            W_wws = calculate_area(P, S, Sw, w)
+            S_ww = calculate_area(n, s, sw, nw)
+            S_w = calculate_area(n, s, sW, nW)
+            S_wwn = calculate_area(N, P, w, Nw)
+            S_wws = calculate_area(P, S, Sw, w)
 
 
             # East -> South
-            D3 = (dy(nw, sw) * (dy(sW, s) / 4) / W_w + dx(nw, sw) * (dx(sW, s) / 4) / W_w +
-                dy(sw, s) * (dy(w, Sw) / 4 + 3 * dy(Sw, S) / 4 + dy(S, P) / 2) / W_wws +
-                dx(sw, s) * (dx(w, Sw) / 4 + 3 * dx(Sw, S) / 4 + dx(S, P) / 2) / W_wws) / W_ww
+            D3 = (dy(nw, sw) * (dy(sW, s) / 4) / S_w + dx(nw, sw) * (dx(sW, s) / 4) / S_w +
+                dy(sw, s) * (dy(w, Sw) / 4 + 3 * dy(Sw, S) / 4 + dy(S, P) / 2) / S_wws +
+                dx(sw, s) * (dx(w, Sw) / 4 + 3 * dx(Sw, S) / 4 + dx(S, P) / 2) / S_wws) / S_ww
 
             # West -> North
-            D_3 = (dy(n, nw) * (3 * dy(N, Nw) / 4 + dy(Nw, w) / 4 + dy(P, N) / 2) / W_wwn +
-                dx(n, nw) * (3 * dx(N, Nw) / 4 + dx(Nw, w) / 4 + dx(P, N) / 2) / W_wwn +
-                dy(nw, sw) * (dy(n, nW) / 4) / W_w + dx(nw, sw) * (dx(n, nW) / 4) / W_w) / W_ww
+            D_3 = (dy(n, nw) * (3 * dy(N, Nw) / 4 + dy(Nw, w) / 4 + dy(P, N) / 2) / S_wwn +
+                dx(n, nw) * (3 * dx(N, Nw) / 4 + dx(Nw, w) / 4 + dx(P, N) / 2) / S_wwn +
+                dy(nw, sw) * (dy(n, nW) / 4) / S_w + dx(nw, sw) * (dx(n, nW) / 4) / S_w) / S_ww
 
             # South -> West
-            D1 = (dy(n, nw) * (dy(Nw, w) / 4 + dy(w, P) / 4) / W_wwn +
-                dx(n, nw) * (dx(Nw, w) / 4 + dx(w, P) / 4) / W_wwn +
-                dy(nw, sw) * (dy(n, nW) / 4 + dy(nW, sW) + dy(sW, s) / 4) / W_w +
-                dx(nw, sw) * (dx(n, nW) / 4 + dx(nW, sW) + dx(sW, s) / 4) / W_w +
-                dy(sw, s) * (dy(P, w) / 4 + dy(w, Sw) / 4) / W_wws +
-                dx(sw, s) * (dx(P, w) / 4 + dx(w, Sw) / 4) / W_wws) / W_ww
+            D1 = (dy(n, nw) * (dy(Nw, w) / 4 + dy(w, P) / 4) / S_wwn +
+                dx(n, nw) * (dx(Nw, w) / 4 + dx(w, P) / 4) / S_wwn +
+                dy(nw, sw) * (dy(n, nW) / 4 + dy(nW, sW) + dy(sW, s) / 4) / S_w +
+                dx(nw, sw) * (dx(n, nW) / 4 + dx(nW, sW) + dx(sW, s) / 4) / S_w +
+                dy(sw, s) * (dy(P, w) / 4 + dy(w, Sw) / 4) / S_wws +
+                dx(sw, s) * (dx(P, w) / 4 + dx(w, Sw) / 4) / S_wws) / S_ww
 
             # SW ->NW
-            D_2 = (dy(n, nw) * (dy(N, Nw) / 4 + dy(Nw, w) / 4) / W_wwn +
-                dx(n, nw) * (dx(N, Nw) / 4 + dx(Nw, w) / 4) / W_wwn +
-                dy(nw, sw) * (dy(n, nW) / 4) / W_w + dx(nw, sw) * (dx(n, nW) / 4) / W_w) / W_ww
+            D_2 = (dy(n, nw) * (dy(N, Nw) / 4 + dy(Nw, w) / 4) / S_wwn +
+                dx(n, nw) * (dx(N, Nw) / 4 + dx(Nw, w) / 4) / S_wwn +
+                dy(nw, sw) * (dy(n, nW) / 4) / S_w + dx(nw, sw) * (dx(n, nW) / 4) / S_w) / S_ww
             
             # SE -> SW
-            D4 = (dy(nw, sw) * (dy(sW, s) / 4) / W_w + dx(nw, sw) * (dx(sW, s) / 4) / W_w +
-                dy(sw, s) * (dy(w, Sw) / 4 + dy(Sw, S) / 4) / W_wws +
-                dx(sw, s) * (dx(w, Sw) / 4 + dx(Sw, S) / 4) / W_wws) / W_ww
+            D4 = (dy(nw, sw) * (dy(sW, s) / 4) / S_w + dx(nw, sw) * (dx(sW, s) / 4) / S_w +
+                dy(sw, s) * (dy(w, Sw) / 4 + dy(Sw, S) / 4) / S_wws +
+                dx(sw, s) * (dx(w, Sw) / 4 + dx(Sw, S) / 4) / S_wws) / S_ww
             
             coefficient = 0.0
             if self.boundary[1] == 'N':
                 coefficient = 0.0
-                b = self.q * dist(s, n) / W_ww
+                b = self.q * dist(s, n) / S_ww
             elif self.boundary[1] == 'R':
                 coefficient = - self.alpha
-                b = - self.alpha * self.Tinf * dist(n, s) / W_ww
+                b = - self.alpha * self.Tinf * dist(n, s) / S_ww
             else:
                 raise ValueError('Unknown boundary type: %s' % self.boundary[1])
             
             # check this again later
             D0 = (coefficient * dist(s, n) +
-                dy(n, nw) * (dy(Nw, w) / 4 + 3 * dy(w, P) / 4 + dy(P, N) / 2) / W_wwn +
-                dx(n, nw) * (dx(Nw, w) / 4 + 3 * dx(w, P) / 4 + dx(P, N) / 2) / W_wwn +
-                dy(nw, sw) * (dy(n, nW) / 4 + dy(sW, s) / 4 + dy(s, n)) / W_w +
-                dx(nw, sw) * (dx(n, nW) / 4 + dx(sW, s) / 4 + dx(s, n)) / W_w +
-                dy(sw, s) * (3 * dy(P, w) / 4 + dy(w, Sw) / 4 + dy(S, P) / 2) / W_wws +
-                dx(sw, s) * (3 * dx(P, w) / 4 + dx(w, Sw) / 4 + dx(S, P) / 2) / W_wws) / W_ww
+                dy(n, nw) * (dy(Nw, w) / 4 + 3 * dy(w, P) / 4 + dy(P, N) / 2) / S_wwn +
+                dx(n, nw) * (dx(Nw, w) / 4 + 3 * dx(w, P) / 4 + dx(P, N) / 2) / S_wwn +
+                dy(nw, sw) * (dy(n, nW) / 4 + dy(sW, s) / 4 + dy(s, n)) / S_w +
+                dx(nw, sw) * (dx(n, nW) / 4 + dx(sW, s) / 4 + dx(s, n)) / S_w +
+                dy(sw, s) * (3 * dy(P, w) / 4 + dy(w, Sw) / 4 + dy(S, P) / 2) / S_wws +
+                dx(sw, s) * (3 * dx(P, w) / 4 + dx(w, Sw) / 4 + dx(S, P) / 2) / S_wws) / S_ww
             
-            print("this is east: " + str(D0))
+            # print("this is east: " + str(D0) + ", " + str(D1) + ", " + str(D_3))
                        
             
             stencil[index(i, j, self.n)] = D0
@@ -525,35 +525,83 @@ class SteadyHeat2D_FVM():
     def build_NE(self, i, j):
         stencil = np.zeros(self.n*self.m)
         b = np.zeros(1)
-        # if self.boundary[1] == 'D':
-        stencil[index(i, j, self.n)] = 1.0
-        b = self.TD[1]
-        # else:
-        #     # principle node coordinate
-        #     P = Coordinate2D(self.X[i, j], self.Y[i, j])
-        #     S = Coordinate2D(self.X[i+1, j], self.Y[i+1, j])
-        #     W = Coordinate2D(self.X[i, j-1], self.Y[i, j-1])
-        #     SW = Coordinate2D(self.X[i+1, j-1], self.Y[i+1, j-1])
+        if self.boundary[1] == 'D':
+            stencil[index(i, j, self.n)] = 1.0
+            b = self.TD[1]
+        else:
+            # principle node coordinate
+            P = Coordinate2D(self.X[i, j], self.Y[i, j])
+            S = Coordinate2D(self.X[i+1, j], self.Y[i+1, j])
+            W = Coordinate2D(self.X[i, j-1], self.Y[i, j-1])
+            SW = Coordinate2D(self.X[i+1, j-1], self.Y[i+1, j-1])
 
-        #     # auxiliary node coordinate
-        #     Sw = Coordinate2D((S.x + SW.x)/2, (S.y + SW.y)/2)
-        #     sW = Coordinate2D((W.x + SW.x)/2, (W.y + SW.y)/2)
+            # auxiliary node coordinate
+            Sw = Coordinate2D((S.x + SW.x)/2, (S.y + SW.y)/2)
+            sW = Coordinate2D((W.x + SW.x)/2, (W.y + SW.y)/2)
 
-        #     s = Coordinate2D((S.x + P.x)/2, (S.y + P.y)/2)
-        #     w = Coordinate2D((W.x + P.x)/2, (W.y + P.y)/2)
+            s = Coordinate2D((S.x + P.x)/2, (S.y + P.y)/2)
+            w = Coordinate2D((W.x + P.x)/2, (W.y + P.y)/2)
 
-        #     sw = Coordinate2D((Sw.x + w.x)/2, (Sw.y + w.y)/2)
-        #     sigma = Coordinate2D((s.x + P.x)/2, (s.y + P.y)/2)
-        #     omega = Coordinate2D((w.x + P.x)/2, (w.y  + P.y)/2)
-        #     sigmaomega = Coordinate2D((omega.x + sigma.x)/2, (omega.y + sigma.y)/2)
-        #     sigmaw = Coordinate2D((sigma.x + w.x)/2, (sigma.y + w.y)/2)
-        #     somega = Coordinate2D((s.x + omega.x)/2 , (s.y + omega.y)/2)
-                        
-        #     if self.boundary[1] == 'N':
-        #         stencil[index(i, j, self.n)] = -2
-        #         stencil[index(i-1, j, self.n)] = 1
-        #         stencil[index(i, j-1, self.n)] = 1
-        #         b = self.q
+            sw = Coordinate2D((Sw.x + w.x)/2, (Sw.y + w.y)/2)
+            sigma = Coordinate2D((s.x + P.x)/2, (s.y + P.y)/2)
+            omega = Coordinate2D((w.x + P.x)/2, (w.y  + P.y)/2)
+            sigmaW = Coordinate2D((W.x + sW.x)/2, (W.y + sW.y)/2)
+            Somega = Coordinate2D((S.x + Sw.x)/2 , (S.y + Sw.y)/2)
+            sigma_w = Coordinate2D((sigma.x + sigmaW.x)/2, (sigma.y + sigmaW.y)/2)
+            s_omega = Coordinate2D((omega.x + Somega.x)/2 , (omega.y + Somega.y)/2)
+            sigmaomega = Coordinate2D((omega.x + s_omega.x)/2, (omega.y + s_omega.y)/2)
+            
+            #calculate areas
+            S_sigmaomega = calculate_area(P, s, sw, w)
+            S_sigmaS = calculate_area(P, S, Sw, w)
+            S_sigmaW = calculate_area(P, s, sW, W)
+            
+            # South
+            D1 = (dy(sw, s) * (3 * dy(Sw, S) / 4 + dy(S, P) / 2 + dy(w, Sw) / 4) / S_sigmaS +
+                dx(sw, s) * (3 * dx(Sw, S) / 4 + dx(S, P) / 2 + dx(w, Sw) / 4) / S_sigmaS +
+                dy(w, sw) * (dy(sW, s) / 4 + dy(s, P) / 4) / S_sigmaW +
+                dx(w, sw) * (dx(sW, s) / 4 + dx(s, P) / 4) / S_sigmaW) / S_sigmaomega
+            
+            # West
+            D_3 = (dy(sw, s) * (dy(P, w) / 4 + dy(w, Sw) / 4) / S_sigmaS +
+                dx(sw, s) * (dx(P, w) / 4 + dx(w, Sw) / 4) / S_sigmaS +
+                dy(w, sw) * (dy(sW, s) / 4 + dy(P, W) / 2 + 3 * dy(W, sW) / 4) / S_sigmaW +
+                dx(w, sw) * (dx(sW, s) / 4 + dx(P, W) / 2 + 3 * dx(W, sW) / 4) / S_sigmaW) / S_sigmaomega
+            
+            #SW
+            D_2 = (dy(sw, s) * (dy(Sw, S) / 4 + dy(w, Sw) / 4) / S_sigmaS +
+                dx(sw, s) * (dx(Sw, S) / 4 + dx(w, Sw) / 4) / S_sigmaS +
+                dy(w, sw) * (dy(sW, s) / 4 + dy(W, sW) / 4) / S_sigmaW +
+                dx(w, sw) * (dx(sW, s) / 4 + dx(W, sW) / 4) / S_sigmaW) / S_sigmaomega 
+            
+            coefficient1 = 0.0
+            coefficient2 = 0.0
+            if self.boundary[1] == 'N': #east boundary
+                coefficient1 = 0.0 
+                b = self.q * (dist(s, P)) / S_sigmaomega
+            elif self.boundary[1] == 'R':
+                coefficient1 = - self.alpha
+                b = - self.alpha * self.Tinf * (dist(s, P)) / S_sigmaomega
+            if self.boundary[0] == 'N': #north boundary
+                coefficient2 = 0.0
+                b = self.q * (dist(P, w)) / S_sigmaomega
+            elif self.boundary[0] == 'R':
+                coefficient2 = - self.alpha
+                b = - self.alpha * self.Tinf * dist(P, w)/ S_sigmaomega
+            else:
+                raise ValueError('Unknown boundary type: %s' % self.boundary[2])
+            
+            D0 = (coefficient1 * dist(s, P) + coefficient2 * dist(P, w) +
+                dy(sw, s) * (dy(S, P) / 2 + 3 * dy(P, w) / 4 + dy(w, Sw) / 4) / S_sigmaS +
+                dx(sw, s) * (dx(S, P) / 2 + 3 * dx(P, w) / 4 + dx(w, Sw) / 4) / S_sigmaS +
+                dy(w, sw) * (dy(sW, s) / 4 + 3 * dy(s, P) / 4 + dy(P, W) / 2) / S_sigmaW +
+                dx(w, sw) * (dx(sW, s) / 4 + 3 * dx(s, P) / 4 + dx(P, W) / 2) / S_sigmaW) / S_sigmaomega
+            
+            stencil[index(i, j, self.n)] = D0
+            stencil[index(i+1, j, self.n)] = D1 #south
+            stencil[index(i, j-1, self.n)] = D_3 #west
+            stencil[index(i+1, j-1, self.n)] = D_2 #sw
+            
         return stencil,b
         
     
@@ -573,6 +621,7 @@ class SteadyHeat2D_FVM():
             stencil[index(i, j, self.n)] = 1.0
             b = self.TD[2]
         
+        # this has to be thermally insulated since we are duplicating and mirroring the top
         else:
             # principle node coordinate
             P = Coordinate2D(self.X[i, j], self.Y[i, j])
@@ -605,16 +654,23 @@ class SteadyHeat2D_FVM():
             #we will need D_3 and D_1 for the west and north respectively
 
             # North
-            D_1 = (dy(nw, w) * (dy(n, nW) / 4 + dy(P, n) / 4) / S_etaW +
-                dx(nw, w) * (dx(n, nW) / 4 + dx(P, n) / 4) / S_etaW +
-                dy(n, nw) * (dy(P, N) / 4 + dy(N, Nw) + dy(Nw, w) / 4) / S_etaN +
-                dx(n, nw) * (dx(P, N) / 4 + dx(N, Nw) + dx(Nw, w) / 4) / S_etaN) / S_etaomega
+            D_1 = (dy(n, nw) * (dy(P, N) / 2 + 3* dy(N, Nw) / 4 + dy(Nw, w) / 4) / S_etaN +
+                dx(n, nw) * (dx(P, N) / 2 + 3* dx(N, Nw) / 4 + dx(Nw, w) / 4) / S_etaN +
+                dy(nw, w) * (dy(P, n) / 4 + dy(n, nW) / 4) / S_etaW +
+                dx(nw, w) * (dx(P, n) / 4 + dx(n, nW) / 4) / S_etaW) / S_etaomega
 
             # West
-            D_3 = (dy(nw, w) * (3 * dy(nW, W) / 4 + dy(n, nW) / 4 + dy(W, P) / 2) / S_etaW +
-                dx(nw, w) * (3 * dx(nW, W) / 4 + dx(n, nW) / 4 + dx(W, P) / 2) / S_etaW +
-                dy(n, nw) * (dy(Nw, w) / 4) / S_etaN + dx(n, nw) * (dx(Nw, w) / 4) / S_etaN) / S_etaomega
+            D_3 = (dy(n, nw) * (dy(w, P) / 4  + dy(Nw, w) / 4) / S_etaN +
+                dx(n, nw) * (dx(w, P) / 4  + dx(Nw, w) / 4) / S_etaN +
+                dy(nw, w) * (dy(W, P) / 2 + dy(n, nW) / 4 + 3 * dy(nW, W) / 4) / S_etaW +
+                dx(nw, w) * (dx(W, P) / 2 + dx(n, nW) / 4 + 3 * dx(nW, W) / 4) / S_etaW) / S_etaomega
 
+            # NW
+            D_4 = (dy(n, nw) * (dy(N, Nw) / 4  + dy(Nw, w) / 4) / S_etaN +
+                dx(n, nw) * (dx(N, Nw) / 4  + dx(Nw, w) / 4) / S_etaN +
+                dy(nw, w) * (dy(n, nW) / 4 + dy(nW, W) / 4) / S_etaW +
+                dx(nw, w) * (dx(n, nW) / 4 + dx(nW, W) / 4) / S_etaW) / S_etaomega
+            
             coefficient1 = 0.0
             coefficient2 = 0.0
             if self.boundary[1] == 'N': #east boundary
@@ -633,16 +689,17 @@ class SteadyHeat2D_FVM():
                 raise ValueError('Unknown boundary type: %s' % self.boundary[2])
             
             D0 = (coefficient1 * dist(P, n) + coefficient2 * dist(w, P) +
-                dy(n, nw) * (dy(w, P) / 2 + dy(P, N) / 2 + 3 * dy(Nw, w) / 4) / S_etaN +
-                dx(n, nw) * (dx(w, P) / 2 + dx(P, N) / 2 + 3 * dx(Nw, w) / 4) / S_etaN +
-                dy(nw, w) * (dy(W, P) / 2 + 3 * dy(P, n) / 4 + dy(n, nW)/4) / S_etaW +
-                dx(nw, w) * (dx(W, P) / 2 + 3 * dx(P, n) / 4 + dx(n, nW)/4) / S_etaW) / S_etaomega
+                dy(n, nw) * (3 * dy(w, P) / 4 + dy(P, N) / 2 + dy(Nw, w) / 4) / S_etaN +
+                dx(n, nw) * (3 * dx(w, P) / 4 + dx(P, N) / 2 + dx(Nw, w) / 4) / S_etaN +
+                dy(nw, w) * (dy(W, P) / 2 + 3 * dy(P, n) / 4 + dy(n, nW)/ 4) / S_etaW +
+                dx(nw, w) * (dx(W, P) / 2 + 3 * dx(P, n) / 4 + dx(n, nW)/ 4) / S_etaW) / S_etaomega
             
             print("help:" + str(D0))
                 
             stencil[index(i, j, self.n)] = D0
-            stencil[index(i-1, j, self.n)] = D_1
-            stencil[index(i, j-1, self.n)] = D_3
+            stencil[index(i-1, j, self.n)] = D_1 #north
+            stencil[index(i, j-1, self.n)] = D_3 #west
+            stencil[index(i-1, j-1, self.n)] = D_4 #NW
         
         return stencil,b
         

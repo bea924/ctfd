@@ -12,7 +12,7 @@ class Coordinate2D():
         self.y = y
 
 
-def calculate_area(ul: Coordinate2D, bl: Coordinate2D, br: Coordinate2D, ur: Coordinate2D):
+def calculate_area(ur: Coordinate2D, br: Coordinate2D, bl: Coordinate2D, ul: Coordinate2D):
     # calculate the area of the cell
     # ul (upper left), bl (bottom left), br (bottom right), ur (upper right) are the coordinates of the four vertices of the cell
     # apply Gaussian trapezoidal formula to calculate the areas
