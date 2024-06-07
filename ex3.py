@@ -9,7 +9,6 @@ from ex3_basics import setUpMesh
 
 
 ##############################################################################
-# for clarification why from -1 to 1.
 dim = 50
 x = np.linspace(-1, 1, dim) 
 y = np.linspace(-1, 1, dim)
@@ -21,14 +20,12 @@ X, Y = setUpMesh(n=dim, shape='linear')
 dued = SteadyHeat2D_FVM(X, Y, boundary=['R', 'R', 'R', 'D'], TD=[5, 90, 90, 100])
 
 solution = dued.solve()
-# dued.solve()
 A = dued.A
 import matplotlib.pyplot as plt
 
 # Example numpy matrix
 matrix = A
-matrix = solution.reshape((dim, dim))  # Replace this with your actual matrix
-# matrix = np.zeros((dim ,dim))
+matrix = solution.reshape((dim, dim))
 c = pd.DataFrame(matrix)
 print(c)
 
@@ -42,5 +39,4 @@ from matplotlib import cm
 surf = ax.plot_surface(X, Y, matrix, cmap=cm.coolwarm,
                        linewidth=0, antialiased=False)
 plt.show()
-# print(dued.B)
 print(X)

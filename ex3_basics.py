@@ -33,8 +33,6 @@ def dist(a: Coordinate2D, b: Coordinate2D):
     # Calculate the euclidean distance between 'a' and 'b'
     return ( (a.x - b.x)**2 + (a.y - b.y)**2 )**0.5
 
-
-
 #############################################################################
 def formfunction(x, shape: str):
     h1 = 4
@@ -62,15 +60,5 @@ def setUpMesh(n, shape: str, formfunction = formfunction):
     x = np.linspace(0, 10, n)
     y_elevation = np.linspace(10, 3, n)
     Y = np.linspace(0, y_elevation, n)
-    # y = np.linspace(-1, 1, n)
-    # xf = formfunction(x, 'linear')
-    # yf = formfunction(y, shape)
-    # # Create the mesh grid
-    # X, Y = np.meshgrid(xf, yf)
-    # return X, Y
-    # x = np.linspace(-1, 1, n)
-    # y_elevation = np.linspace(1, 0.5, n)
-    # y_elevation = formfunction(y_elevation, shape)
-    # Y = np.linspace(-y_elevation, y_elevation, n)
     X = np.tile(x, (n, 1))
     return X, Y

@@ -28,7 +28,7 @@ class SteadyHeat2D_FVM():
         self.n = self.X.shape[1]
         self.m = self.X.shape[0]
 
-        self.A = np.zeros((self.n*self.m, self.n*self.m)) # must be matrix??
+        self.A = np.zeros((self.n*self.m, self.n*self.m))
         self.B = np.zeros(self.n*self.m)
         
 
@@ -198,7 +198,6 @@ class SteadyHeat2D_FVM():
         stencil[index(i+1, j+1, self.n)] = D4
         
         return stencil,b
-        
     
 ######################################################################################################################################
     def build_north(self, i, j):
@@ -289,9 +288,7 @@ class SteadyHeat2D_FVM():
             stencil[index(i+1, j+1, self.n)] = D4
 
         return stencil,b
-    
 
-    
 ######################################################################################################################################
     def build_south(self, i, j):
         stencil = np.zeros(self.n*self.m)
@@ -386,8 +383,6 @@ class SteadyHeat2D_FVM():
 
         return stencil,b
 
-    
-    
 ######################################################################################################################################
     def build_east(self, i, j):
         stencil = np.zeros(self.n*self.m)
@@ -470,10 +465,7 @@ class SteadyHeat2D_FVM():
                 dx(nw, sw) * (dx(n, nW) / 4 + dx(sW, s) / 4 + dx(s, n)) / S_w +
                 dy(sw, s) * (3 * dy(P, w) / 4 + dy(w, Sw) / 4 + dy(S, P) / 2) / S_wws +
                 dx(sw, s) * (3 * dx(P, w) / 4 + dx(w, Sw) / 4 + dx(S, P) / 2) / S_wws) / S_ww
-            
-            # print("this is east: " + str(D0) + ", " + str(D1) + ", " + str(D_3))
-                       
-            
+          
             stencil[index(i, j, self.n)] = D0
             stencil[index(i, j-1, self.n)] = D1 #west
             stencil[index(i-1, j, self.n)] = D_3 #north
@@ -482,19 +474,7 @@ class SteadyHeat2D_FVM():
             stencil[index(i+1, j-1, self.n)] = D4 #sw
 
         return stencil,b
-    
-    
-    
-    
-    # def build_south(self, i, j):
-    #     stencil = np.zeros(self.n*self.m)
-    #     b = np.zeros(1)
-    #     # if self.boundary[3] == 'D':
-    #     stencil[index(i, j, self.n)] = 1.0
-    #     b = self.TD[2]
-    #     return stencil,b
             
-    
     def build_west(self, i, j):
         stencil = np.zeros(self.n*self.m)
         b = np.zeros(1)
@@ -502,16 +482,6 @@ class SteadyHeat2D_FVM():
         stencil[index(i, j, self.n)] = 1.0
         b = self.TD[3]
         return stencil,b
-            
-    
-    # def build_east(self, i, j):
-    #     stencil = np.zeros(self.n*self.m)
-    #     b = np.zeros(1)
-    #     # if self.boundary[1] == 'D':
-    #     stencil[index(i, j, self.n)] = 1.0
-    #     b = self.TD[1]
-    #     return stencil,b
-        
     
     def build_NW(self, i, j):
         stencil = np.zeros(self.n*self.m)
@@ -604,7 +574,6 @@ class SteadyHeat2D_FVM():
             
         return stencil,b
         
-    
     def build_SW(self, i, j):
         stencil = np.zeros(self.n*self.m)
         b = np.zeros(1)
@@ -613,13 +582,12 @@ class SteadyHeat2D_FVM():
         b = self.TD[3]
         return stencil,b
         
-    
     def build_SE(self, i, j):
         stencil = np.zeros(self.n*self.m)
         b = np.zeros(1)
-        if self.boundary[2] == 'D':
+        if self.boundary[1] == 'D':
             stencil[index(i, j, self.n)] = 1.0
-            b = self.TD[2]
+            b = self.TD[1]
         
         # this has to be thermally insulated since we are duplicating and mirroring the top
         else:
