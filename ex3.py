@@ -18,12 +18,10 @@ X, T = setUpMesh(n=dim, shape='linear')
 dued = SteadyHeat2D_FVM(X, T, boundary=['D', 'D', 'D', 'D'], TD=[40, 40, 40, 100])
 
 solution = "steady"
-solution = dued.solve(solution='unsteadyi', dt=0.1, t_end=5)
-A = dued.A
+solution = dued.solve(solution='unsteadyi', dt=0.1, t_end=20)
 import matplotlib.pyplot as plt
 
 # Example numpy matrix
-matrix = A
 matrix = solution.reshape((dim, dim))
 c = pd.DataFrame(matrix)
 # print(c)

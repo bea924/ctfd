@@ -39,22 +39,22 @@ class SteadyHeat2D_FVM():
         b = 0
         if (j == 0):
             if (i == 0):
-                a,b = self.build_NW(i,j)
-            elif (i == self.n-1):
                 a,b = self.build_SW(i,j)
+            elif (i == self.n-1):
+                a,b = self.build_NW(i,j)
             else:
                 a,b = self.build_west(i,j)
         elif (j == self.n-1):
             if (i == 0):
-                a,b = self.build_NE(i,j)
-            elif (i == self.n-1):
                 a,b = self.build_SE(i,j)
+            elif (i == self.n-1):
+                a,b = self.build_NE(i,j)
             else:
                 a,b = self.build_east(i,j)
         elif (i == 0):
-            a,b = self.build_north(i,j)
+            a,b = self.build_south(i,j)
         elif (i == self.n-1):
-            a,b = self.build_south(i,j)            
+            a,b = self.build_north(i,j)            
         else:
             a,b = self.build_inner(i,j)
         self.A[index(i,j,self.n)] += a
@@ -373,8 +373,6 @@ class SteadyHeat2D_FVM():
                 dy(e, ne) * (3 * dy(n, P) / 4 + dy(nE, n) / 4 + dy(P, E) / 2) / S_nne +
                 dx(e, ne) * (3 * dx(n, P) / 4 + dx(nE, n) / 4 + dx(P, E) / 2) / S_nne) / S_nn
             
-            # print("this is the south [" + str(i) +"][" + str(j) + "]: " + str(D0) + ", " + str(D_1) + ", " + str(D_3) + ", " + str(D3) + ", " + str(D2) + ", " + str(D_4))
-            
             stencil[index(i, j, self.n)] = D0
             stencil[index(i-1, j, self.n)] = D_1
             stencil[index(i, j-1, self.n)] = D_3
@@ -662,8 +660,6 @@ class SteadyHeat2D_FVM():
                 dx(n, nw) * (3 * dx(w, P) / 4 + dx(P, N) / 2 + dx(Nw, w) / 4) / S_etaN +
                 dy(nw, w) * (dy(W, P) / 2 + 3 * dy(P, n) / 4 + dy(n, nW)/ 4) / S_etaW +
                 dx(nw, w) * (dx(W, P) / 2 + 3 * dx(P, n) / 4 + dx(n, nW)/ 4) / S_etaW) / S_etaomega
-            
-            print("help:" + str(D0))
                 
             stencil[index(i, j, self.n)] = D0
             stencil[index(i-1, j, self.n)] = D_1 #north
@@ -676,11 +672,11 @@ class SteadyHeat2D_FVM():
     def set_initial_temperature(self):
         if self.boundary[0] == 'D': #north
             for j in range(self.n):
-                self.T0[index(0, j, self.n)] = self.TD[0]
+                self.T0[index(self.m-1, j, self.n)] = self.TD[0]
 
         if self.boundary[2] == 'D': #south
             for j in range(self.n):
-                self.T0[index(self.m-1, j, self.n)] = self.TD[2]
+                self.T0[index(0, j, self.n)] = self.TD[2]
 
         if self.boundary[3] == 'D': #west
             for i in range(self.m):
@@ -688,10 +684,7 @@ class SteadyHeat2D_FVM():
 
         if self.boundary[1] == 'D': #east
             for i in range(self.m):
-                self.T0[index(i, self.m-1, self.n)] = self.TD[1]
-
-
-        
+                self.T0[index(i, self.m-1, self.n)] = self.TD[1]   
     
     def solve(self, solution, dt = 0.01, t_end = 4.0):
         for i in range(self.n):
@@ -719,9 +712,7 @@ class SteadyHeat2D_FVM():
                 # Astar = I - dt*self.A
                 self.T0 = np.linalg.solve(Astar, Bstar)
                 t += dt
-            return self.T0
-
-            # pass        
+            return self.T0  
         else:
             raise ValueError("Mode must be either 'steady' or 'unsteady' ")
         
