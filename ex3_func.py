@@ -375,7 +375,7 @@ class SteadyHeat2D_FVM():
                 dy(e, ne) * (3 * dy(n, P) / 4 + dy(nE, n) / 4 + dy(P, E) / 2) / S_nne +
                 dx(e, ne) * (3 * dx(n, P) / 4 + dx(nE, n) / 4 + dx(P, E) / 2) / S_nne) / S_nn
             
-            print("this is the south [" + str(i) +"][" + str(j) + "]: " + str(D0) + ", " + str(D_1) + ", " + str(D_3) + ", " + str(D3) + ", " + str(D2) + ", " + str(D_4))
+            # print("this is the south [" + str(i) +"][" + str(j) + "]: " + str(D0) + ", " + str(D_1) + ", " + str(D_3) + ", " + str(D3) + ", " + str(D2) + ", " + str(D_4))
             
             stencil[index(i, j, self.n)] = D0
             stencil[index(i-1, j, self.n)] = D_1
@@ -581,13 +581,13 @@ class SteadyHeat2D_FVM():
                 b = self.q * (dist(s, P)) / S_sigmaomega
             elif self.boundary[1] == 'R':
                 coefficient1 = - self.alpha
-                b = - self.alpha * self.Tinf * (dist(s, P)) / S_sigmaomega
+                b = - self.alpha * self.Tinf * (dist(s, P) + dist(P, w)) / S_sigmaomega
             if self.boundary[0] == 'N': #north boundary
                 coefficient2 = 0.0
                 b = self.q * (dist(P, w)) / S_sigmaomega
             elif self.boundary[0] == 'R':
                 coefficient2 = - self.alpha
-                b = - self.alpha * self.Tinf * dist(P, w)/ S_sigmaomega
+                b = - self.alpha * self.Tinf * (dist(P, w) + dist(s,P))/ S_sigmaomega
             else:
                 raise ValueError('Unknown boundary type: %s' % self.boundary[2])
             
@@ -675,16 +675,16 @@ class SteadyHeat2D_FVM():
             coefficient2 = 0.0
             if self.boundary[1] == 'N': #east boundary
                 coefficient1 = 0.0 
-                b = self.q * (dist(P, n)) / S_etaomega
+                b = 0.0
             elif self.boundary[1] == 'R':
-                coefficient1 = - self.alpha
-                b = - self.alpha * self.Tinf * (dist(P, n)) / S_etaomega
+                coefficient1 = 0.0
+                b = 0.0
             if self.boundary[2] == 'N': #south boundary
                 coefficient2 = 0.0
-                b = self.q * (dist(w, P)) / S_etaomega
+                b = 0.0
             elif self.boundary[2] == 'R':
-                coefficient2 = - self.alpha
-                b = - self.alpha * self.Tinf * dist(w, P)/ S_etaomega
+                coefficient2 = 0.0
+                b = 0.0
             else:
                 raise ValueError('Unknown boundary type: %s' % self.boundary[2])
             
