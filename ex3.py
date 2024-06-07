@@ -6,8 +6,6 @@ from matplotlib import cm
 from ex3_func import SteadyHeat2D_FVM
 from ex3_basics import setUpMesh
 
-
-
 ##############################################################################
 dim = 50
 x = np.linspace(-1, 1, dim) 
@@ -15,11 +13,12 @@ y = np.linspace(-1, 1, dim)
 
 # Create the mesh grid
 # X, Y = np.meshgrid(x, y)
-X, Y = setUpMesh(n=dim, shape='linear')
+X, T = setUpMesh(n=dim, shape='linear')
 # [N E S W]
-dued = SteadyHeat2D_FVM(X, Y, boundary=['R', 'R', 'R', 'D'], TD=[5, 90, 90, 100])
+dued = SteadyHeat2D_FVM(X, T, boundary=['D', 'D', 'D', 'D'], TD=[40, 40, 40, 100])
 
-solution = dued.solve()
+solution = "steady"
+solution = dued.solve(solution)
 A = dued.A
 import matplotlib.pyplot as plt
 
@@ -36,7 +35,6 @@ print(c)
 
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 from matplotlib import cm
-surf = ax.plot_surface(X, Y, matrix, cmap=cm.coolwarm,
+surf = ax.plot_surface(X, T, matrix, cmap=cm.coolwarm,
                        linewidth=0, antialiased=False)
 plt.show()
-print(X)

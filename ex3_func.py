@@ -672,8 +672,19 @@ class SteadyHeat2D_FVM():
         return stencil,b
         
     
-    def solve(self):
-        for i in range(self.n):
-            for j in range(self.m):
-                self.set_stencil(i,j)
-        return np.linalg.solve(self.A, self.B)
+    def solve(self, solution, dt = 0.01, t_end = 4.0):
+        if solution == "steady":
+            for i in range(self.n):
+                for j in range(self.m):
+                    self.set_stencil(i,j)
+            return np.linalg.solve(self.A, self.B)
+        elif solution == "unsteady":
+            t = 0
+            while t < t_end:
+                for i in range(1, self.n):
+                    for j in range(1, self.m):
+                        Tn[i, j] = T[i,j]
+            pass        
+        else:
+            raise ValueError("Mode must be either 'steady' or 'unsteady' ")
+        

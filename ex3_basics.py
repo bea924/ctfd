@@ -59,6 +59,6 @@ def formfunction(x, shape: str):
 def setUpMesh(n, shape: str, formfunction = formfunction):
     x = np.linspace(0, 10, n)
     y_elevation = np.linspace(10, 3, n)
-    Y = np.linspace(0, y_elevation, n)
+    T = np.linspace(0, y_elevation, n)
     X = np.tile(x, (n, 1))
-    return X, Y
+    return X, T
