@@ -5,12 +5,10 @@ def index(i, j, n):
     # Return the index in the computational vector based on the physical indices 'i' and 'j'
     return j+i*(n)
 
-
 class Coordinate2D():
     def __init__(self, x, y):
         self.x = x
         self.y = y
-
 
 def calculate_area(ur: Coordinate2D, br: Coordinate2D, bl: Coordinate2D, ul: Coordinate2D):
     # calculate the area of the cell
@@ -19,7 +17,6 @@ def calculate_area(ur: Coordinate2D, br: Coordinate2D, bl: Coordinate2D, ul: Coo
     return 0.5 * abs( (ur.x*br.y - br.x*ur.y) + (br.x*bl.y - bl.x*br.y)
                      + (bl.x*ul.y - ul.x*bl.y) + (ul.x*ur.y - ur.x*ul.y) )
 
-
 def dy(a: Coordinate2D, b: Coordinate2D):
     # Calculate distance between 'a' and 'b' along the y axis
     return b.y - a.y
@@ -27,7 +24,6 @@ def dy(a: Coordinate2D, b: Coordinate2D):
 def dx(a: Coordinate2D, b: Coordinate2D):
     # Calculate distance between 'a' and 'b' along the x axis
     return b.x - a.x
-
 
 def dist(a: Coordinate2D, b: Coordinate2D):
     # Calculate the euclidean distance between 'a' and 'b'

@@ -6,8 +6,6 @@ from matplotlib import cm
 from ex3_func import SteadyHeat2D_FVM
 from ex3_basics import setUpMesh
 
-
-
 ##############################################################################
 dim = 50
 x = np.linspace(-1, 1, dim) 
