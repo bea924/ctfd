@@ -30,6 +30,7 @@ class SteadyHeat2D_FVM():
 
         self.A = np.zeros((self.n*self.m, self.n*self.m))
         self.B = np.zeros(self.n*self.m)
+        self.T0 = np.zeros(self.n*self.m)
         
 
     def set_stencil(self, i, j):
@@ -670,21 +671,57 @@ class SteadyHeat2D_FVM():
             stencil[index(i-1, j-1, self.n)] = D_4 #NW
         
         return stencil,b
+    
+
+    def set_initial_temperature(self):
+        if self.boundary[0] == 'D': #north
+            for j in range(self.n):
+                self.T0[index(0, j, self.n)] = self.TD[0]
+
+        if self.boundary[2] == 'D': #south
+            for j in range(self.n):
+                self.T0[index(self.m-1, j, self.n)] = self.TD[2]
+
+        if self.boundary[3] == 'D': #west
+            for i in range(self.m):
+                self.T0[index(i, 0, self.n)] = self.TD[3]
+
+        if self.boundary[1] == 'D': #east
+            for i in range(self.m):
+                self.T0[index(i, self.m-1, self.n)] = self.TD[1]
+
+
         
     
     def solve(self, solution, dt = 0.01, t_end = 4.0):
-        if solution == "steady":
-            for i in range(self.n):
+        for i in range(self.n):
                 for j in range(self.m):
                     self.set_stencil(i,j)
-            return np.linalg.solve(self.A, self.B)
-        elif solution == "unsteady":
+        if solution == "steady":
+            self.T0 = np.linalg.solve(self.A, self.B)
+            return self.T0
+        
+        elif solution == "unsteadye":
             t = 0
             while t < t_end:
-                for i in range(1, self.n):
-                    for j in range(1, self.m):
-                        Tn[i, j] = T[i,j]
-            pass        
+                self.T0 = self.T0 + dt*(self.A@self.T0 - self.B)
+                t += dt
+            return self.T0
+        
+        elif solution == "unsteadyi":
+            self.set_initial_temperature()
+            t = 0
+            Bstar = np.zeros(self.m*self.n)
+            Imatrix = np.eye(self.m*self.n)
+            Astar = Imatrix - dt*self.A
+            while t < t_end:
+                Bstar = self.T0 - dt*self.B
+                # Astar = I - dt*self.A
+                self.T0 = np.linalg.solve(Astar, Bstar)
+                t += dt
+            return self.T0
+
+            # pass        
         else:
             raise ValueError("Mode must be either 'steady' or 'unsteady' ")
         

@@ -18,7 +18,7 @@ X, T = setUpMesh(n=dim, shape='linear')
 dued = SteadyHeat2D_FVM(X, T, boundary=['D', 'D', 'D', 'D'], TD=[40, 40, 40, 100])
 
 solution = "steady"
-solution = dued.solve(solution)
+solution = dued.solve(solution='unsteadyi', dt=0.1, t_end=5)
 A = dued.A
 import matplotlib.pyplot as plt
 
@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 matrix = A
 matrix = solution.reshape((dim, dim))
 c = pd.DataFrame(matrix)
-print(c)
+# print(c)
 
 # # Plot the matrix as a grid with colored squares
 # plt.imshow(matrix, cmap='viridis')
