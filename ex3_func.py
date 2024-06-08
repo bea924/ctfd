@@ -686,22 +686,22 @@ class SteadyHeat2D_FVM():
             for i in range(self.m):
                 self.T0[index(i, self.m-1, self.n)] = self.TD[1]   
     
-    def solve(self, solution, dt = 0.01, t_end = 4.0):
+    def solve(self, mode, dt = 0.01, t_end = 4.0):
         for i in range(self.n):
                 for j in range(self.m):
                     self.set_stencil(i,j)
-        if solution == "steady":
+        if mode == "steady":
             self.T0 = np.linalg.solve(self.A, self.B)
             return self.T0
         
-        elif solution == "unsteadye":
+        elif mode == "unsteadye":
             t = 0
             while t < t_end:
                 self.T0 = self.T0 + dt*(self.A@self.T0 - self.B)
                 t += dt
             return self.T0
         
-        elif solution == "unsteadyi":
+        elif mode == "unsteadyi":
             self.set_initial_temperature()
             t = 0
             Bstar = np.zeros(self.m*self.n)
@@ -712,7 +712,33 @@ class SteadyHeat2D_FVM():
                 # Astar = I - dt*self.A
                 self.T0 = np.linalg.solve(Astar, Bstar)
                 t += dt
+                print("hi this is t:" + str(t))
             return self.T0  
         else:
             raise ValueError("Mode must be either 'steady' or 'unsteady' ")
         
+    def stencil(self):
+        for i in range(self.n):
+            for j in range(self.m):
+                self.set_stencil(i,j)
+    
+    def solve_animation(self, mode, dt = 0.01):
+        if mode == "steady":
+            self.T0 = np.linalg.solve(self.A, self.B)
+            return self.T0
+        
+        elif mode == "unsteadye":
+            self.T0 = self.T0 + dt*(self.A@self.T0 - self.B)
+            return self.T0
+        
+        elif mode == "unsteadyi":
+            self.set_initial_temperature()
+            Bstar = np.zeros(self.m*self.n)
+            Imatrix = np.eye(self.m*self.n)
+            Astar = Imatrix - dt*self.A
+            Bstar = self.T0 - dt*self.B
+            # Astar = I - dt*self.A
+            self.T0 = np.linalg.solve(Astar, Bstar)
+            return self.T0 
+        else:
+            raise ValueError("Mode must be either 'steady' or 'unsteady' ")
