@@ -693,7 +693,7 @@ class SteadyHeat2D_FVM():
 
         
     
-    def solve(self, solution, dt = 0.01, t_end = 4.0):
+    def solve(self, solution, dt = 0.01, t_end = 4.0, theta=0.5):
         for i in range(self.n):
                 for j in range(self.m):
                     self.set_stencil(i,j)
@@ -701,10 +701,22 @@ class SteadyHeat2D_FVM():
             self.T0 = np.linalg.solve(self.A, self.B)
             return self.T0
         
-        elif solution == "unsteadye":
+        elif solution == "unsteady":
             t = 0
             while t < t_end:
                 self.T0 = self.T0 + dt*(self.A@self.T0 - self.B)
+                t += dt
+            return self.T0
+        
+        elif solution == 'temporal':
+            self.set_initial_temperature()
+            t = 0
+            Bstar = np.zeros(self.m*self.n)
+            Imatrix = np.eye(self.m*self.n)
+            Astar = Imatrix/dt - theta*self.A
+            while t < t_end:
+                Bstar = self.T0/dt + (1-theta) * self.A@self.T0 - self.B
+                self.T0 = np.linalg.solve(Astar, Bstar)
                 t += dt
             return self.T0
         
