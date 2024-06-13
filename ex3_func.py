@@ -38,18 +38,18 @@ class SteadyHeat2D_FVM():
         b = 0
         if (j == 0):
             if (i == 0):
-                a,b = self.build_NW(i,j)
-            elif (i == self.n-1):
-                a,b = self.build_SW(i,j)
-            else:
-                a,b = self.build_west(i,j)
-        elif (j == self.n-1):
-            if (i == 0):
                 a,b = self.build_NE(i,j)
             elif (i == self.n-1):
                 a,b = self.build_SE(i,j)
             else:
                 a,b = self.build_east(i,j)
+        elif (j == self.n-1):
+            if (i == 0):
+                a,b = self.build_NW(i,j)
+            elif (i == self.n-1):
+                a,b = self.build_SW(i,j)
+            else:
+                a,b = self.build_west(i,j)
         elif (i == 0):
             a,b = self.build_north(i,j)
         elif (i == self.n-1):
@@ -92,6 +92,7 @@ class SteadyHeat2D_FVM():
         # %    D_2 -  D1 - D4
 
         # principle node coordinate
+        print(f"index {i} {j} in build inner")
         P = Coordinate2D(self.X[i, j], self.Y[i, j])
         N = Coordinate2D(self.X[i-1, j], self.Y[i-1, j])
         S = Coordinate2D(self.X[i+1, j], self.Y[i+1, j])
@@ -208,6 +209,7 @@ class SteadyHeat2D_FVM():
             stencil[index(i, j, self.n)] = 1.0
             b = self.TD[0]
         else: 
+            print(f"point {i},{j} in build north\n")
             # principle node coordinate
             P = Coordinate2D(self.X[i, j], self.Y[i, j])
             S = Coordinate2D(self.X[i+1, j], self.Y[i+1, j])
