@@ -1,5 +1,7 @@
 import numpy as np
-from scipy.sparse import dia_matrix, dia_array, eye
+from scipy.sparse import dia_matrix, csr_matrix
+from scipy.sparse.linalg import spsolve
+from matplotlib.pyplot import spy
     
 class SteadyHeat2D:
     def __init__(self, Lx, Ly, dimX, dimY):
@@ -11,13 +13,11 @@ class SteadyHeat2D:
         self.dx = Lx/dimX
         self.dy = Ly/dimY
 
+        self.A = None
+
         # self.A = np.identity(self.dimX*self.dimY)
-        # self.A = dia_matrix(eye(self.dimX*self.dimY))
-        self.diag = np.zeros([self.dimX*self.dimY])
-        self.upper_diag = np.zeros([self.dimX*self.dimY])
-        self.lower_diag = np.zeros([self.dimX*self.dimY])
-        self.upperupper_diag = np.zeros([self.dimX*self.dimY])
-        self.lowerlower_diag = np.zeros([self.dimX*self.dimY])
+        self.diag = np.zeros([9, self.dimX*self.dimY])
+        self.data = np.zeros([9, self.dimX*self.dimY])
 
         self.set_inner()
         self.b = np.zeros([self.dimX*self.dimY])
@@ -30,15 +30,15 @@ class SteadyHeat2D:
                 k = i+j
                 # builds the matrix like in scicomplab, so each row
                 # self.A[k][k] = -2 * (1/(self.dx*self.dx) + 1/(self.dy*self.dy)) # central node
-                self.diag[k] = -2 * (1/(self.dx*self.dx) + 1/(self.dy*self.dy))
+                self.diag[4][k] = -2 * (1/(self.dx*self.dx) + 1/(self.dy*self.dy))
                 # self.A[k][k-1] = 1/(self.dx*self.dx) # side nodes
-                self.lower_diag[k] = 1/(self.dx*self.dx)
+                self.diag[3][k] = 1/(self.dx*self.dx)
                 # self.A[k][k+1] = 1/(self.dx*self.dx)
-                self.upper_diag[k] = 1/(self.dx*self.dx)
+                self.diag[5][k] = 1/(self.dx*self.dx)
                 # self.A[k][k - self.dimX] = 1/(self.dy*self.dy) # upper lower nodes
-                self.lowerlower_diag[k] = 1/(self.dy*self.dy)
+                self.diag[1][k] = 1/(self.dy*self.dy)
                 # self.A[k][k + self.dimX] = 1/(self.dy*self.dy)
-                self.upperupper_diag[k] = 1/(self.dy*self.dy)
+                self.diag[7][k] = 1/(self.dy*self.dy)
 
     # south
     def set_south(self, bc_type, T_d=0.0, q=0.0, alpha = 0.0, T_inf=0.0):
@@ -48,7 +48,7 @@ class SteadyHeat2D:
                 for i in range(self.dimX):
                     ii = (self.dimX*self.dimY) - i - 1
                     # self.A[ii][ii] = 1
-                    self.diag[ii] = 1
+                    self.diag[4][ii] = 1
             except:
                 print("no T_d value for source boundary type")
         elif (bc_type=="n"):
@@ -56,9 +56,12 @@ class SteadyHeat2D:
                 for i in range(self.dimX):
                     ii = (self.dimX*self.dimY)-i-1
                     self.b[ii] = q
-                    self.A[ii][ii] = -4/(2*self.dimY)
-                    self.A[ii][ii-self.dimX] = 3/(2*self.dimY)
-                    self.A[ii][ii-(2*self.dimX)] = 1/(2*self.dimY)
+                    # self.A[ii][ii] = -4/(2*self.dimY)
+                    self.diag[4][ii] = -4/(2*self.dimY)
+                    # self.A[ii][ii-self.dimX] = 3/(2*self.dimY)
+                    self.diag[1][ii] = 3/(2*self.dimY)
+                    # self.A[ii][ii-(2*self.dimX)] = 1/(2*self.dimY)
+                    self.diag[0][ii] = 1/(2*self.dimY)
             except:
                 print("no q value for flux boundary type")
         elif (bc_type=="r"):
@@ -66,9 +69,12 @@ class SteadyHeat2D:
                 for i in range(self.dimX):
                     ii = (self.dimX*self.dimY)-i-1
                     self.b[ii] = alpha * T_inf
-                    self.A[ii][ii] = alpha + 3/(2*self.dimY)
-                    self.A[ii][ii-self.dimX] = -4/(2*self.dimY)
-                    self.A[ii][ii-(2*self.dimX)] = 1/(2*self.dimY)
+                    # self.A[ii][ii] = alpha + 3/(2*self.dimY)
+                    self.diag[4][ii] = alpha + 3/(2*self.dimX)
+                    # self.A[ii][ii-self.dimX] = -4/(2*self.dimY)
+                    self.diag[1][ii] = -4/(2*self.dimX)
+                    # self.A[ii][ii-(2*self.dimX)] = 1/(2*self.dimY)
+                    self.diag[0][ii] = 1/(2*self.dimX)
             except:
                 print("no alpha or T_inf value for conjugate boundary type")
         else:
@@ -83,7 +89,7 @@ class SteadyHeat2D:
                 for i in range(self.dimX):
                     ii = (self.dimX*self.dimY) - i - 1
                     # self.A[ii][ii] = 1
-                    self.diag[ii] = 1
+                    self.diag[4][ii] = 1
             except:
                 print("no T_d value for source boundary type")
         elif (bc_type=="n"):
@@ -91,19 +97,26 @@ class SteadyHeat2D:
                 for i in range(self.dimX):
                     ii = i
                     self.b[ii] = q
-                    self.A[ii][ii] = -4/(2*self.dimY)
-                    self.A[ii][ii+self.dimX] = 3/(2*self.dimY)
-                    self.A[ii][ii+(2*self.dimX)] = 1/(2*self.dimY)
+                    # self.A[ii][ii] = -4/(2*self.dimY)
+                    self.diag[4][ii] = -4/(2*self.dimX)
+                    # self.A[ii][ii+self.dimX] = 3/(2*self.dimY)
+                    self.diag[7][ii] = -4/(2*self.dimX)
+                    # self.A[ii][ii+(2*self.dimX)] = 1/(2*self.dimY)
+                    self.diag[8][ii] = -4/(2*self.dimX)
             except:
                 print("no q value for flux boundary type")
         elif (bc_type=="r"):
+            print("north robin")
             try:
                 for i in range(self.dimX):
                     ii = i
                     self.b[ii] = alpha * T_inf
-                    self.A[ii][ii] = alpha + 3/(2*self.dimY)
-                    self.A[ii][ii+self.dimX] = -4/(2*self.dimY)
-                    self.A[ii][ii+(2*self.dimX)] = 1/(2*self.dimY)
+                    # self.A[ii][ii] = alpha + 3/(2*self.dimY)
+                    self.diag[4][ii] = alpha + 3/(2*self.dimY)
+                    # self.A[ii][ii+self.dimX] = -4/(2*self.dimY)
+                    self.diag[7][ii] = -4/(2*self.dimY)
+                    # self.A[ii][ii+(2*self.dimX)] = 1/(2*self.dimY)
+                    self.diag[8][ii] = 1/(2*self.dimY)
             except:
                 print("no alpha or T_inf value for conjugate boundary type")
         else:
@@ -118,7 +131,7 @@ class SteadyHeat2D:
                     ii = i * self.dimX
                     self.b[ii] = T_d
                     # self.A[ii][ii] = 1
-                    self.diag[ii] = 1
+                    self.diag[4][ii] = 1
             except:
                 print("no T_d value for source boundary type")
         elif (bc_type=="n"):
@@ -126,9 +139,12 @@ class SteadyHeat2D:
                 for i in range(self.dimY):
                     ii = i * self.dimX
                     self.b[ii] = q
-                    self.A[ii][ii] = -4/(2*self.dimX)
-                    self.A[ii][ii+1] = 3/(2*self.dimX)
-                    self.A[ii][ii+2] = 1/(2*self.dimX)
+                    # self.A[ii][ii] = -4/(2*self.dimX)
+                    self.diag[4][ii] = -4/(2*self.dimX)
+                    # self.A[ii][ii+1] = 3/(2*self.dimX)
+                    self.diag[5][ii] = 3/(2*self.dimX)
+                    # self.A[ii][ii+2] = 1/(2*self.dimX)
+                    self.diag[6][ii] = 1/(2*self.dimX)
             except:
                 print("no q value for flux boundary type")
         elif (bc_type=="r"):
@@ -136,9 +152,12 @@ class SteadyHeat2D:
                 for i in range(self.dimY):
                     ii = i * self.dimX
                     self.b[ii] = alpha * T_inf
-                    self.A[ii][ii] = alpha + 3/(2*self.dimY)
-                    self.A[ii][ii+1] = -4/(2*self.dimY)
-                    self.A[ii][ii+2] = 1/(2*self.dimY)
+                    # self.A[ii][ii] = alpha + 3/(2*self.dimY)
+                    self.diag[4][ii] = alpha + 3/(2*self.dimY)
+                    # self.A[ii][ii+1] = -4/(2*self.dimY)
+                    self.diag[5][ii] = -4/(2*self.dimY)
+                    # self.A[ii][ii+2] = 1/(2*self.dimY)
+                    self.diag[6][ii] = 1/(2*self.dimY)
             except:
                 print("no alpha or T_inf value for conjugate boundary type")
         else:
@@ -153,7 +172,7 @@ class SteadyHeat2D:
                     ii = i * self.dimX + self.dimX -1
                     self.b[ii] = T_d
                     # self.A[ii][ii] = 1
-                    self.diag[ii] = 1
+                    self.diag[4][ii] = 1
             except:
                 print("no T_d value for source boundary type")
         elif (bc_type=="n"):
@@ -161,9 +180,12 @@ class SteadyHeat2D:
                 for i in range(self.dimY):
                     ii = i * self.dimX + self.dimX -1
                     self.b[ii] = q
-                    self.A[ii][ii] = -4/(2*self.dimX)
-                    self.A[ii][ii-1] = 3/(2*self.dimX)
-                    self.A[ii][ii-2] = 1/(2*self.dimX)
+                    # self.A[ii][ii] = -4/(2*self.dimX)
+                    self.diag[4][ii] = -4/(2*self.dimX)
+                    # self.A[ii][ii-1] = 3/(2*self.dimX)
+                    self.diag[3][ii] = 3/(2*self.dimX)
+                    # self.A[ii][ii-2] = 1/(2*self.dimX)
+                    self.diag[2][ii] = 1/(2*self.dimX)
             except:
                 print("no q value for flux boundary type")
         elif (bc_type=="r"):
@@ -171,9 +193,12 @@ class SteadyHeat2D:
                 for i in range(self.dimY):
                     ii = i * self.dimX + self.dimX -1
                     self.b[ii] = alpha * T_inf
-                    self.A[ii][ii] = alpha + 3/(2*self.dimY)
-                    self.A[ii][ii-1] = -4/(2*self.dimY)
-                    self.A[ii][ii-2] = 1/(2*self.dimY)
+                    # self.A[ii][ii] = alpha + 3/(2*self.dimY)
+                    self.diag[4][ii] = alpha + 3/(2*self.dimY)
+                    # self.A[ii][ii-1] = -4/(2*self.dimY)
+                    self.diag[3][ii] = -4/(2*self.dimY)
+                    # self.A[ii][ii-2] = 1/(2*self.dimY)
+                    self.diag[2][ii] = 1/(2*self.dimY)
             except:
                 print("no alpha or T_inf value for conjugate boundary type")
         else:
@@ -183,5 +208,16 @@ class SteadyHeat2D:
 
     # solve the linear system
     def solve(self):
+        offsets = np.array([-2*self.dimX, -self.dimX, -2, -1, 0, 1, 2, self.dimX, 2*self.dimX])
 
-        return np.linalg.solve(self.A, self.b)
+        for i, offset in enumerate(offsets):
+            if offset < 0:
+                self.data[i][:offset] = self.diag[i][-offset:]
+            elif offset == 0:
+                self.data[i] = self.diag[i]
+            elif offset > 0:
+                self.data[i][offset:] = self.diag[i][:-offset]
+
+        self.A = dia_matrix((self.data, offsets), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
+        self.A = csr_matrix(self.A)
+        return spsolve(self.A, self.b)

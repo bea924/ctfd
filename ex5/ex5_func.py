@@ -120,9 +120,9 @@ class SteadyHeat2D:
                 for i in range(self.dimY):
                     ii = i * self.dimX
                     self.b[ii] = alpha * T_inf
-                    self.A[ii][ii] = alpha + 3/(2*self.dimY)
-                    self.A[ii][ii+1] = -4/(2*self.dimY)
-                    self.A[ii][ii+2] = 1/(2*self.dimY)
+                    self.A[ii][ii] = alpha + 3/(2*self.dimX)
+                    self.A[ii][ii+1] = -4/(2*self.dimX)
+                    self.A[ii][ii+2] = 1/(2*self.dimX)
             except:
                 print("no alpha or T_inf value for conjugate boundary type")
         else:
@@ -154,9 +154,9 @@ class SteadyHeat2D:
                 for i in range(self.dimY):
                     ii = i * self.dimX + self.dimX -1
                     self.b[ii] = alpha * T_inf
-                    self.A[ii][ii] = alpha + 3/(2*self.dimY)
-                    self.A[ii][ii-1] = -4/(2*self.dimY)
-                    self.A[ii][ii-2] = 1/(2*self.dimY)
+                    self.A[ii][ii] = alpha + 3/(2*self.dimX)
+                    self.A[ii][ii-1] = -4/(2*self.dimX)
+                    self.A[ii][ii-2] = 1/(2*self.dimX)
             except:
                 print("no alpha or T_inf value for conjugate boundary type")
         else:

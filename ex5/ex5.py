@@ -1,5 +1,8 @@
+# from ex5_func_sparse import SteadyHeat2D
 from ex5_func import SteadyHeat2D
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import spy
+from scipy.sparse import dia_matrix, csr_array
 
 # Test
 Lx = 1
@@ -11,7 +14,7 @@ heat = SteadyHeat2D(Lx, Ly, dimX, dimY)
 
 heat.set_south("d", T_d=5)
 heat.set_west("d", T_d=5)
-heat.set_north("d", T_d=10)
+heat.set_north("r", alpha=1, T_inf=1)
 heat.set_east("d", T_d=5)
 
 # heat.set_north("d", T_d=0)A
