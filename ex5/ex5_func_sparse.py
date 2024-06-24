@@ -3,6 +3,7 @@ from scipy.sparse import dia_matrix, csr_matrix
 from scipy.sparse.linalg import spsolve
 from matplotlib.pyplot import spy
 from numpy import linalg as la
+import matplotlib.pyplot as plt
     
 class SteadyHeat2Dsparse:
     def __init__(self, Lx, Ly, dimX, dimY):
@@ -42,9 +43,10 @@ class SteadyHeat2Dsparse:
                 self.diag[1][k] = 1/(self.dy*self.dy)
                 # self.A[k][k + self.dimX] = 1/(self.dy*self.dy)
                 self.diag[7][k] = 1/(self.dy*self.dy)
+                # print(f"Inner node {k}: diag[4][{k}]={self.diag[4][k]}, diag[3][{k}]={self.diag[3][k]}, diag[5][{k}]={self.diag[5][k]}, diag[1][{k}]={self.diag[1][k]}, diag[7][{k}]={self.diag[7][k]}")
 
     # south
-    def set_south(self, bc_type, T_d=0.0, q=0.0, alpha = 0.0, T_inf=0.0):
+    def set_south(self, bc_type, T_d = 0.0, q = 0.0, alpha = 0.0, T_inf = 0.0):
         if (bc_type=="d"):
             try: 
                 self.b[-self.dimX:] = T_d
@@ -224,6 +226,24 @@ class SteadyHeat2Dsparse:
         self.A = dia_matrix((self.data, offsets), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
         self.A = csr_matrix(self.A)
         return spsolve(self.A, self.b)
+    
+    def plot_diag(self):
+        plt.figure(figsize=(10, 6))
+        plt.imshow(self.diag, aspect='auto', cmap='viridis')
+        plt.colorbar()
+        plt.title("Diagonal Array (self.diag)")
+        plt.xlabel("Node Index")
+        plt.ylabel("Diagonal Index")
+        plt.show()
+        
+    def print_diag(self):
+        print("Diagonal array (self.diag):")
+        for i in range(self.diag.shape[0]):
+            print(self.diag[i])
+
+    def print_b(self):
+        print("Vector b (self.b):")
+        print(self.b)
     
 
 
