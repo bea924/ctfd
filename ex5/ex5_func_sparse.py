@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.sparse import dia_matrix, csr_matrix, csc_matrix, tril
-from scipy.sparse.linalg import spsolve
+from scipy.sparse.linalg import spsolve_triangular, spsolve
 from matplotlib.pyplot import spy
 from numpy import linalg as la
 import pandas as pd
@@ -264,7 +264,7 @@ class SteadyHeat2Dsparse:
         return x
     
     def solveGauss(self, threshold=0.00001, max_iterations=5000):
-        residual = 1000000
+        residual = 100
         iteration = 0
 
         # Ensure self.diag[4] contains the main diagonal elements of A
@@ -283,26 +283,27 @@ class SteadyHeat2Dsparse:
                 self.data[i][offset:] = self.diag[i][:-offset]
 
         self.A = dia_matrix((self.data, offsets), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
-        self.A = csc_matrix(self.A)
+        self.A = csr_matrix(self.A)
+        R = self.A.toarray()
+        # df_A = pd.DataFrame(self.A)
+        # print(df_A)
 
         # Preconditioner C = D + E
-        C = tril(self.A)
-        # df_C = pd.DataFrame(C)
-        # print(df_C)
+        C = tril(self.A, format = "csr")
 
         x = np.zeros(self.dimX*self.dimY)
         x_new = np.zeros(self.dimX*self.dimY)
         
         # Compute C^-1 * b
-        C_inv_b = spsolve(C, self.b)
+        C_inv_b = spsolve_triangular(C, self.b)
 
         while ((iteration < max_iterations) & (residual > threshold)):
-            T = spsolve(C, self.A)
+            T = spsolve_triangular(C, R)
             x_new = C_inv_b - T.dot(x)
             residual = np.linalg.norm(x_new - x)
             iteration += 1
             x = x_new
-
+            
         return x
     
 
