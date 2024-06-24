@@ -17,15 +17,15 @@ elapsed_time = end_time - start_time
 # Test
 Lx = 1
 Ly = 1
-dimX = 4
-dimY = 4
+dimX = 100
+dimY = 100
 
 heat = SteadyHeat2Dsparse(Lx, Ly, dimX, dimY)
 
-heat.set_south("d", T_d=5)
-heat.set_west("d", T_d=10)
-heat.set_north("d", T_d=10)
-heat.set_east("d", T_d=5)
+heat.set_south("d", T_d=100)
+heat.set_west("d", T_d=20)
+heat.set_north("d", T_d=20)
+heat.set_east("d", T_d=100)
 
 # heat.set_north("d", T_d=0)A
 # heat.set_south("d", T_d=0)
@@ -34,7 +34,7 @@ heat.set_east("d", T_d=5)
 
 
 T = heat.solveJacobi()
-T.reshape((dimX, dimY))
+# T.reshape((dimX, dimY))
 # Visualize the diag array
 # heat.plot_diag()
 heat.print_diag()

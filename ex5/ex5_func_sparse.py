@@ -4,6 +4,7 @@ from scipy.sparse.linalg import spsolve
 from matplotlib.pyplot import spy
 from numpy import linalg as la
 import matplotlib.pyplot as plt
+import pandas as pd
     
 class SteadyHeat2Dsparse:
     def __init__(self, Lx, Ly, dimX, dimY):
@@ -92,7 +93,7 @@ class SteadyHeat2Dsparse:
             try: 
                 self.b[:self.dimX] = T_d
                 for i in range(self.dimX):
-                    ii = (self.dimX*self.dimY) - i - 1
+                    ii = i
                     # self.A[ii][ii] = 1
                     self.diag[4][ii] = 1
             except:
@@ -237,15 +238,16 @@ class SteadyHeat2Dsparse:
         plt.show()
         
     def print_diag(self):
-        print("Diagonal array (self.diag):")
-        for i in range(self.diag.shape[0]):
-            print(self.diag[i])
+        df_diag = pd.DataFrame(self.diag)
+        print(df_diag)
 
     def print_b(self):
-        print("Vector b (self.b):")
-        print(self.b)
-    
-
+        df_b = pd.DataFrame(self.b, columns=["b"])
+        print(df_b)
+        
+    def print_A(self):
+        df_A = pd.DataFrame(self.A)
+        print(df_A)
 
     def solveJacobi(self, threshold=0.001, max_iterations=200):
         residual = 1000000
