@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.sparse import dia_matrix, csr_matrix, tril
+from scipy.sparse import dia_matrix, csr_matrix, csc_matrix, tril
 from scipy.sparse.linalg import spsolve
 from matplotlib.pyplot import spy
 from numpy import linalg as la
@@ -283,13 +283,12 @@ class SteadyHeat2Dsparse:
                 self.data[i][offset:] = self.diag[i][:-offset]
 
         self.A = dia_matrix((self.data, offsets), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
-        self.A = csr_matrix(self.A)
+        self.A = csc_matrix(self.A)
 
         # Preconditioner C = D + E
         C = tril(self.A)
         # df_C = pd.DataFrame(C)
         # print(df_C)
-        C = csr_matrix(C)
 
         x = np.zeros(self.dimX*self.dimY)
         x_new = np.zeros(self.dimX*self.dimY)
@@ -299,7 +298,7 @@ class SteadyHeat2Dsparse:
 
         while ((iteration < max_iterations) & (residual > threshold)):
             T = spsolve(C, self.A)
-            x_new = C_inv_b - spsolve(T, x)
+            x_new = C_inv_b - T.dot(x)
             residual = np.linalg.norm(x_new - x)
             iteration += 1
             x = x_new
