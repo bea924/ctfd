@@ -90,7 +90,8 @@ class SteadyHeat2Dsparse:
             try: 
                 self.b[:self.dimX] = T_d
                 for i in range(self.dimX):
-                    ii = (self.dimX*self.dimY) - i - 1
+                    # ii = (self.dimX*self.dimY) - i - 1
+                    ii = i
                     # self.A[ii][ii] = 1
                     self.diag[4][ii] = 1
             except:
@@ -227,7 +228,7 @@ class SteadyHeat2Dsparse:
     
 
 
-    def solveJacobi(self, threshold=0.001, max_iterations=200):
+    def solveJacobi(self, threshold=0.00001, max_iterations=5000):
         residual = 1000000
         iteration = 0
 
@@ -252,7 +253,7 @@ class SteadyHeat2Dsparse:
         x = np.zeros(self.dimX*self.dimY)
         x_new = np.zeros(self.dimX*self.dimY)
 
-        while (iteration < max_iterations):
+        while ((iteration < max_iterations) & (residual > threshold)):
             T = self.D_1.dot(self.R)
             x_new = self.D_1.dot(self.b) - T.dot(x)
             residual = np.linalg.norm(x_new - x)  # Ensure correct residual calculation
