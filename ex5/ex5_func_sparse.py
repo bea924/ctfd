@@ -2,8 +2,9 @@ import numpy as np
 from scipy.sparse import dia_matrix, csr_matrix
 from scipy.sparse.linalg import spsolve
 from matplotlib.pyplot import spy
+from numpy import linalg as la
     
-class SteadyHeat2D:
+class SteadyHeat2Dsparse:
     def __init__(self, Lx, Ly, dimX, dimY):
         self.l = Lx #lunghezza rettangolo
         self.h = Ly
@@ -14,6 +15,8 @@ class SteadyHeat2D:
         self.dy = Ly/dimY
 
         self.A = None
+        self.D_1 = None
+        self.R = None
 
         # self.A = np.identity(self.dimX*self.dimY)
         self.diag = np.zeros([9, self.dimX*self.dimY])
@@ -221,3 +224,42 @@ class SteadyHeat2D:
         self.A = dia_matrix((self.data, offsets), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
         self.A = csr_matrix(self.A)
         return spsolve(self.A, self.b)
+    
+
+
+    def solveJacobi(self, threshold=0.001, max_iterations=200):
+        residual = 1000000
+        iteration = 0
+
+        # Ensure self.diag[4] contains the main diagonal elements of A
+        self.D_1 = dia_matrix((1/self.diag[4], 0), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
+        self.D_1 = csr_matrix(self.D_1)
+
+        offsets = np.array([-2*self.dimX, -self.dimX, -2, -1, 0, 1, 2, self.dimX, 2*self.dimX])
+        self.data = np.zeros((len(offsets), self.dimX * self.dimY))
+
+        for i, offset in enumerate(offsets):
+            if offset < 0:
+                self.data[i][:offset] = self.diag[i][-offset:]
+            elif offset == 0:
+                self.data[i] = np.zeros(self.dimX*self.dimY)  # or self.diag[i] if it's supposed to be the main diagonal
+            elif offset > 0:
+                self.data[i][offset:] = self.diag[i][:-offset]
+
+        self.R = dia_matrix((self.data, offsets), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
+        self.R = csr_matrix(self.R)
+
+        x = np.zeros(self.dimX*self.dimY)
+        x_new = np.zeros(self.dimX*self.dimY)
+
+        while (iteration < max_iterations):
+            T = self.D_1.dot(self.R)
+            x_new = self.D_1.dot(self.b) - T.dot(x)
+            residual = np.linalg.norm(x_new - x)  # Ensure correct residual calculation
+            iteration += 1
+            x = x_new
+
+        return x
+
+        
+

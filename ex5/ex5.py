@@ -1,8 +1,18 @@
-# from ex5_func_sparse import SteadyHeat2D
+from ex5_func_sparse import SteadyHeat2Dsparse
 from ex5_func import SteadyHeat2D
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import spy
 from scipy.sparse import dia_matrix, csr_array
+
+import time
+
+start_time = time.time()
+
+# Your code here
+time.sleep(2)  # Example code
+
+end_time = time.time()
+elapsed_time = end_time - start_time
 
 # Test
 Lx = 1
@@ -10,11 +20,11 @@ Ly = 1
 dimX = 5
 dimY = 5
 
-heat = SteadyHeat2D(Lx, Ly, dimX, dimY)
+heat = SteadyHeat2Dsparse(Lx, Ly, dimX, dimY)
 
 heat.set_south("d", T_d=5)
-heat.set_west("d", T_d=5)
-heat.set_north("r", alpha=1, T_inf=1)
+heat.set_west("d", T_d=10)
+heat.set_north("d", T_d=10)
 heat.set_east("d", T_d=5)
 
 # heat.set_north("d", T_d=0)A
@@ -23,7 +33,7 @@ heat.set_east("d", T_d=5)
 # heat.set_west("d", T_d=0)
 
 
-T = heat.solve()
+T = heat.solveJacobi()
 T.reshape((dimX, dimY))
 
 
@@ -37,5 +47,9 @@ plt.show()
 
 # # sparse matrix plot
 # from matplotlib.pyplot import spy
-# spy(heat.A)
+# spy(heat.D_1)
+# plt.show()
+
+# from matplotlib.pyplot import spy
+# spy(heat.R)
 # plt.show()
