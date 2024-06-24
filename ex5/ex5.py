@@ -33,13 +33,14 @@ heat.set_east("d", T_d=5)
 # heat.set_west("d", T_d=0)
 
 
-T = heat.solveJacobi()
-T.reshape((dimX, dimY))
+# T = heat.solveJacobi()
+T_g = heat.solveGauss()
+T_g.reshape((dimX, dimY))
 
 
 
 # solution plot
-matrix = T.reshape((dimX, dimY))
+matrix = T_g.reshape((dimX, dimY))
 plt.imshow(matrix, cmap='magma')
 plt.colorbar()
 plt.show()

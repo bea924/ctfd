@@ -1,8 +1,9 @@
 import numpy as np
-from scipy.sparse import dia_matrix, csr_matrix
+from scipy.sparse import dia_matrix, csr_matrix, tril
 from scipy.sparse.linalg import spsolve
 from matplotlib.pyplot import spy
 from numpy import linalg as la
+import pandas as pd
     
 class SteadyHeat2Dsparse:
     def __init__(self, Lx, Ly, dimX, dimY):
@@ -261,6 +262,50 @@ class SteadyHeat2Dsparse:
             x = x_new
 
         return x
+    
+    def solveGauss(self, threshold=0.00001, max_iterations=5000):
+        residual = 1000000
+        iteration = 0
+
+        # Ensure self.diag[4] contains the main diagonal elements of A
+        self.D = dia_matrix((self.diag[4], 0), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
+        self.D = csr_matrix(self.D)
+
+        offsets = np.array([-2*self.dimX, -self.dimX, -2, -1, 0, 1, 2, self.dimX, 2*self.dimX])
+        self.data = np.zeros((len(offsets), self.dimX * self.dimY))
+
+        for i, offset in enumerate(offsets):
+            if offset < 0:
+                self.data[i][:offset] = self.diag[i][-offset:]
+            elif offset == 0:
+                self.data[i] = self.diag[i]
+            elif offset > 0:
+                self.data[i][offset:] = self.diag[i][:-offset]
+
+        self.A = dia_matrix((self.data, offsets), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
+        self.A = csr_matrix(self.A)
+
+        # Preconditioner C = D + E
+        C = tril(self.A)
+        # df_C = pd.DataFrame(C)
+        # print(df_C)
+        C = csr_matrix(C)
+
+        x = np.zeros(self.dimX*self.dimY)
+        x_new = np.zeros(self.dimX*self.dimY)
+        
+        # Compute C^-1 * b
+        C_inv_b = spsolve(C, self.b)
+
+        while ((iteration < max_iterations) & (residual > threshold)):
+            T = spsolve(C, self.A)
+            x_new = C_inv_b - spsolve(T, x)
+            residual = np.linalg.norm(x_new - x)
+            iteration += 1
+            x = x_new
+
+        return x
+    
 
         
 
