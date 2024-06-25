@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.sparse import dia_matrix, csr_matrix, csc_matrix, tril
+from scipy.sparse import dia_matrix, csr_matrix, csc_matrix, tril, identity
 from scipy.sparse.linalg import spsolve_triangular, spsolve
 from matplotlib.pyplot import spy
 from numpy import linalg as la
@@ -284,30 +284,31 @@ class SteadyHeat2Dsparse:
 
         self.A = dia_matrix((self.data, offsets), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
         self.A = csr_matrix(self.A)
-        R = self.A.toarray()
-        df_A = pd.DataFrame(R)
-        print(df_A)
+        # R = self.A.toarray()
+        # df_A = pd.DataFrame(R)
+        # print(df_A)
 
         # Preconditioner C = D + E
         C = tril(self.A, format = "csr")
-        df_C = pd.DataFrame(C.toarray())
-        print(df_C)
+        # df_C = pd.DataFrame(C.toarray())
+        # print(df_C)
 
+        F = self.A - C
         x = np.zeros(self.dimX*self.dimY)
         x_new = np.zeros(self.dimX*self.dimY)
         
         # Compute C^-1 * b
-        C_inv_b = spsolve_triangular(C, self.b)
-
+        # C_inv_b = spsolve_triangular(C, self.b)
+        I = csr_matrix(identity(self.dimX*self.dimY))
+        C_inv = spsolve(C, I)
+        
         while ((iteration < max_iterations) & (residual > threshold)):
-            T = spsolve_triangular(C, R)
-            x_new = C_inv_b - T.dot(x)
+            Fx = F.dot(x)
+            x_new = C_inv.dot(self.b) - C_inv.dot(Fx)
+            # T = spsolve_triangular(C, R)
+            # x_new = C_inv_b - Fx.dot(Fx)
             residual = np.linalg.norm(x_new - x)
             iteration += 1
             x = x_new
             
         return x
-    
-
-        
-
