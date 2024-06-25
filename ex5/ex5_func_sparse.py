@@ -298,13 +298,14 @@ class SteadyHeat2Dsparse:
         x_new = np.zeros(self.dimX*self.dimY)
         
         # Compute C^-1 * b
-        # C_inv_b = spsolve_triangular(C, self.b)
+        C_inv_b = spsolve_triangular(C, self.b)
         I = csr_matrix(identity(self.dimX*self.dimY))
         C_inv = spsolve(C, I)
         
         while ((iteration < max_iterations) & (residual > threshold)):
             Fx = F.dot(x)
-            x_new = C_inv.dot(self.b) - C_inv.dot(Fx)
+            # x_new = C_inv.dot(self.b) - C_inv.dot(Fx)
+            x_new = C_inv_b - C_inv.dot(Fx)
             # T = spsolve_triangular(C, R)
             # x_new = C_inv_b - Fx.dot(Fx)
             residual = np.linalg.norm(x_new - x)
