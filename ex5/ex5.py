@@ -8,48 +8,34 @@ import time
 
 start_time = time.time()
 
-# Your code here
-time.sleep(2)  # Example code
-
-end_time = time.time()
-elapsed_time = end_time - start_time
-
 # Test
 Lx = 1
 Ly = 1
-dimX = 5
-dimY = 5
+dimX = 50
+dimY = 50
+#possibilities J - Jacobi, G - Gauss-Siedel, SOR - SOR
+solver = "G"
 
 heat = SteadyHeat2Dsparse(Lx, Ly, dimX, dimY)
 
 heat.set_south("d", T_d=5)
-heat.set_west("d", T_d=10)
-heat.set_north("d", T_d=10)
+heat.set_west("d", T_d=30)
+heat.set_north("d", T_d=30)
 heat.set_east("d", T_d=5)
 
-# heat.set_north("d", T_d=0)A
-# heat.set_south("d", T_d=0)
-# heat.set_east("d", T_d=0)
-# heat.set_west("d", T_d=0)
-
-
-T = heat.solveJacobi()
+if (solver == "J"):
+    T = heat.solveJacobi()
+elif (solver == "G"):
+    T = heat.solveGauss()
+    
 T.reshape((dimX, dimY))
 
-
+end_time = time.time()
+elapsed_time = end_time - start_time
+print("Time taken using solver " + solver + ": " + str(elapsed_time) + " secs")
 
 # solution plot
 matrix = T.reshape((dimX, dimY))
-plt.imshow(matrix, cmap='magma')
+plt.imshow(matrix, cmap='jet')
 plt.colorbar()
 plt.show()
-
-
-# # sparse matrix plot
-# from matplotlib.pyplot import spy
-# spy(heat.D_1)
-# plt.show()
-
-# from matplotlib.pyplot import spy
-# spy(heat.R)
-# plt.show()

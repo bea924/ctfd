@@ -1,8 +1,9 @@
 import numpy as np
-from scipy.sparse import dia_matrix, csr_matrix
-from scipy.sparse.linalg import spsolve
+from scipy.sparse import dia_matrix, csr_matrix, csc_matrix, tril, identity
+from scipy.sparse.linalg import spsolve_triangular, spsolve
 from matplotlib.pyplot import spy
 from numpy import linalg as la
+import pandas as pd
     
 class SteadyHeat2Dsparse:
     def __init__(self, Lx, Ly, dimX, dimY):
@@ -261,6 +262,47 @@ class SteadyHeat2Dsparse:
             x = x_new
 
         return x
+    
+    def solveGauss(self, threshold=0.00001, max_iterations=5000):
+        residual = 100
+        iteration = 0
 
+        # Ensure self.diag[4] contains the main diagonal elements of A
+        self.D_1 = dia_matrix((1/self.diag[4], 0), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
+        D = dia_matrix((self.diag[4], 0), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
+        self.D_1 = csr_matrix(self.D_1)
+
+        offsets = np.array([-2*self.dimX, -self.dimX, -2, -1, 0, 1, 2, self.dimX, 2*self.dimX])
+        self.data = np.zeros((len(offsets), self.dimX * self.dimY))
+
+        for i, offset in enumerate(offsets):
+            if offset < 0:
+                self.data[i][:offset] = self.diag[i][-offset:]
+            elif offset == 0:
+                self.data[i] = self.diag[i]
+            elif offset > 0:
+                self.data[i][offset:] = self.diag[i][:-offset]
+
+        self.A = dia_matrix((self.data, offsets), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
+        self.A = csr_matrix(self.A)
         
+        # x(m+1) = D_1 (b - Ex(m+1) -Fx(m))
+        # Preconditioner C = D + E + F
+        C = tril(self.A, format = "csr")
+        F = self.A - C 
+        E = C - D
 
+        x = np.zeros(self.dimX*self.dimY)
+        x_new = np.zeros(self.dimX*self.dimY)
+        
+        # Compute C^-1 * b
+        D_inv_b = spsolve(self.D_1, self.b)
+        while ((iteration < max_iterations) & (residual > threshold)):
+            Fx = F.dot(x)
+            Ex = E.dot(x_new)
+            x_new = D_inv_b - self.D_1.dot(Ex) - self.D_1.dot(Fx)
+            residual = np.linalg.norm(x_new - x)
+            iteration += 1
+            x = x_new
+            
+        return x
