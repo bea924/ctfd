@@ -346,7 +346,7 @@ class SteadyHeat2Dsparse:
             residual = np.linalg.norm(x_new - x)
             
             # Print iteration details for debugging
-            print(f"Iteration {iteration}, Residual: {residual}")
+            # print(f"Iteration {iteration}, Residual: {residual}")
             iteration += 1
             x = x_new
             
