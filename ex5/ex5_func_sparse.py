@@ -268,8 +268,9 @@ class SteadyHeat2Dsparse:
         iteration = 0
 
         # Ensure self.diag[4] contains the main diagonal elements of A
-        self.D = dia_matrix((self.diag[4], 0), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
-        self.D = csr_matrix(self.D)
+        self.D_1 = dia_matrix((1/self.diag[4], 0), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
+        D = dia_matrix((self.diag[4], 0), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
+        self.D_1 = csr_matrix(self.D_1)
 
         offsets = np.array([-2*self.dimX, -self.dimX, -2, -1, 0, 1, 2, self.dimX, 2*self.dimX])
         self.data = np.zeros((len(offsets), self.dimX * self.dimY))
@@ -284,30 +285,22 @@ class SteadyHeat2Dsparse:
 
         self.A = dia_matrix((self.data, offsets), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
         self.A = csr_matrix(self.A)
-        # R = self.A.toarray()
-        # df_A = pd.DataFrame(R)
-        # print(df_A)
-
-        # Preconditioner C = D + E
+        
+        # x(m+1) = D_1 (b - Ex(m+1) -Fx(m))
+        # Preconditioner C = D + E + F
         C = tril(self.A, format = "csr")
-        # df_C = pd.DataFrame(C.toarray())
-        # print(df_C)
+        F = self.A - C 
+        E = C - D
 
-        F = self.A - C
         x = np.zeros(self.dimX*self.dimY)
         x_new = np.zeros(self.dimX*self.dimY)
         
         # Compute C^-1 * b
-        C_inv_b = spsolve_triangular(C, self.b)
-        I = csr_matrix(identity(self.dimX*self.dimY))
-        C_inv = spsolve(C, I)
-        
+        D_inv_b = spsolve(self.D_1, self.b)
         while ((iteration < max_iterations) & (residual > threshold)):
             Fx = F.dot(x)
-            # x_new = C_inv.dot(self.b) - C_inv.dot(Fx)
-            x_new = C_inv_b - C_inv.dot(Fx)
-            # T = spsolve_triangular(C, R)
-            # x_new = C_inv_b - Fx.dot(Fx)
+            Ex = E.dot(x_new)
+            x_new = D_inv_b - self.D_1.dot(Ex) - self.D_1.dot(Fx)
             residual = np.linalg.norm(x_new - x)
             iteration += 1
             x = x_new
