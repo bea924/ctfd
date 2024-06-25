@@ -11,8 +11,8 @@ start_time = time.time()
 # Test
 Lx = 1
 Ly = 1
-dimX = 10
-dimY = 10
+dimX = 4
+dimY = 4
 #possibilities J - Jacobi, G - Gauss-Siedel, SOR - SOR
 solver = "G"
 

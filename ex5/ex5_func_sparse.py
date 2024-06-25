@@ -285,11 +285,13 @@ class SteadyHeat2Dsparse:
         self.A = dia_matrix((self.data, offsets), shape=(self.dimX*self.dimY, self.dimX*self.dimY))
         self.A = csr_matrix(self.A)
         R = self.A.toarray()
-        # df_A = pd.DataFrame(self.A)
-        # print(df_A)
+        df_A = pd.DataFrame(R)
+        print(df_A)
 
         # Preconditioner C = D + E
         C = tril(self.A, format = "csr")
+        df_C = pd.DataFrame(C.toarray())
+        print(df_C)
 
         x = np.zeros(self.dimX*self.dimY)
         x_new = np.zeros(self.dimX*self.dimY)
