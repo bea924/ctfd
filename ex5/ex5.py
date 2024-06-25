@@ -11,10 +11,10 @@ start_time = time.time()
 # Test
 Lx = 1
 Ly = 1
-dimX = 50
-dimY = 50
+dimX = 8
+dimY = 8
 #possibilities J - Jacobi, G - Gauss-Siedel, SOR - SOR
-solver = "G"
+solver = "SOR"
 
 heat = SteadyHeat2Dsparse(Lx, Ly, dimX, dimY)
 
@@ -27,6 +27,8 @@ if (solver == "J"):
     T = heat.solveJacobi()
 elif (solver == "G"):
     T = heat.solveGauss()
+elif (solver == "SOR"):
+    T = heat.solveSOR()
     
 T.reshape((dimX, dimY))
 
