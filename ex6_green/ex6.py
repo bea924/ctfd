@@ -43,6 +43,6 @@ integral_GF_ys_xs = np.trapz(integral_GF_ys, x_s) #over x
 GF_x = return_GF_1D_array(x, x_s_start, x_s_end, Lx, bc_E, bc_W) # 1D GF(x_s)
 GF_y = return_GF_1D_array(y, y_s_start, x_s_end, Ly, bc_S, bc_N) # 1D GF(y_s)
 
-# # East integral -> Dirichlet
-# dGdx = np.diff(GF_y) / np.diff(x_s)
-# integral_GF_E = np.trapz(dGdx*T, y_s) #over y
+# East integral -> Dirichlet
+dGdx = np.diff(GF_y) / np.diff(x_s)
+integral_GF_E = np.trapz(dGdx*T, y_s) #over y

@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def GF_table(bc_left: str, bc_right: str, L, truncation):
     # returns the eigenvalue beta_m and the norm Nx
 
@@ -52,9 +53,8 @@ def GF_function(x, y, x_s, y_s, Lx, Ly, bc_e: str, bc_n: str, bc_w: str, bc_s: s
     sum = np.sum(summation_array)
     return sum
 
+
 def GF_1D_function(x, x_s, Length, bc_in: str, bc_out: str, truncation = 50):
-    # x = np.arange(0, Lx, step)
-    # y = np.arange(0, Ly, step)
     beta_m, Nx = GF_table(bc_in, bc_out, Length, truncation)
     
     summation_array = np.zeros(truncation)
@@ -67,7 +67,7 @@ def GF_1D_function(x, x_s, Length, bc_in: str, bc_out: str, truncation = 50):
         fraction = 1/((beta_m[i]*beta_m[i]))
         X_mult = (X_m*X_m_s)/Nx
 
-        summation_array[i*truncation] = fraction * X_mult
+        summation_array[i] = fraction * X_mult
     
     sum = np.sum(summation_array)
     return sum
@@ -75,12 +75,14 @@ def GF_1D_function(x, x_s, Length, bc_in: str, bc_out: str, truncation = 50):
 
 def return_GF_matrix(x, y, x_s_start, x_s_end, y_s_start, y_s_end, Lx, Ly, bc_e: str, bc_n: str, bc_w: str, bc_s: str, n_step_s = 20):
     # returns GF as a function of x_s and y_s and for a specific x and y value
-    step_s_x = (x_s_end-x_s_start)/n_step_s
-    step_s_y = (y_s_end-y_s_start)/n_step_s
-    x_s = np.arange(x_s_start, x_s_end, step_s_x)
-    x_s[-1] = x_s_end # just to make sure we arrive to the border
-    y_s = np.arange(y_s_start, y_s_end, step_s_y)
-    y_s[-1] = y_s_end # just to make sure we arrive to the borders
+    # step_s_x = (x_s_end-x_s_start)/n_step_s
+    # step_s_y = (y_s_end-y_s_start)/n_step_s
+    # x_s = np.arange(x_s_start, x_s_end, step_s_x)
+    # x_s[-1] = x_s_end # just to make sure we arrive to the border
+    # y_s = np.arange(y_s_start, y_s_end, step_s_y)
+    # y_s[-1] = y_s_end # just to make sure we arrive to the borders
+    x_s = np.linspace(x_s_start, x_s_end, n_step_s)
+    y_s = np.linspace(y_s_start, y_s_end, n_step_s)
 
     GF_matrix = np.zeros((n_step_s, n_step_s))
 
@@ -90,11 +92,12 @@ def return_GF_matrix(x, y, x_s_start, x_s_end, y_s_start, y_s_end, Lx, Ly, bc_e:
 
     return GF_matrix
 
-def return_GF_1D_array(x, x_s_start, x_s_end, Lx, bc_in: str, bc_out: str, n_step_s = 20):
-    step_s_x = (x_s_end-x_s_start)/n_step_s
 
-    x_s = np.arange(0, Lx, step_s_x)
-    x_s[-1] = x_s_end # just to make sure we arrive to the border
+def return_GF_1D_array(x, x_s_start, x_s_end, Lx, bc_in: str, bc_out: str, n_step_s = 20):
+    # step_s_x = (x_s_end-x_s_start)/n_step_s
+    # x_s = np.arange(0, Lx, step_s_x)
+    # x_s[-1] = x_s_end # just to make sure we arrive to the border
+    x_s = np.linspace(x_s_start, x_s_end, n_step_s)
 
     GF_matrix = np.zeros(n_step_s)
 
