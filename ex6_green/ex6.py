@@ -1,7 +1,30 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from ex6_func import GF_function, GF_1D_function, return_GF_matrix, return_GF_1D_array
 
-omega = 5
+
+# test plot
+Lx = Ly = 1
+x_s = y_s = Lx/2
+plot_GF = np.zeros((20, 20))
+x = np.arange(0, Lx, 0.05)
+y = np.arange(0, Ly, 0.05)
+for i in range(20):
+    for j in range(20):
+        plot_GF[i, j] = GF_function(x[i], y[j], x_s, y_s, Lx, Ly, bc_e = "N", bc_n = "N", bc_w = "D", bc_s = "D")
+        
+
+# Plot the heatmap
+plt.imshow(plot_GF, cmap='jet', interpolation='nearest', origin = 'lower')
+plt.colorbar()  # Add a color bar to show the color scale
+plt.title('Heatmap of 2D NumPy Array')
+plt.xlabel('Column Index')
+plt.ylabel('Row Index')
+plt.show()
+
+
+
+# omega = 5
 lambda_v = 1
 Lx = Ly = 1
 
@@ -19,10 +42,12 @@ y_s_end = Ly
 n_step_s = 20
 step_s_x = (x_s_end-x_s_start)/n_step_s
 step_s_y = (y_s_end-y_s_start)/n_step_s
-x_s = np.arange(x_s_start, x_s_end, step_s_x)
-x_s[-1] = x_s_end # just to make sure we arrive to the border
-y_s = np.arange(y_s_start, y_s_end, step_s_y)
-y_s[-1] = y_s_end
+# x_s = np.arange(x_s_start, x_s_end, step_s_x)
+# x_s[-1] = x_s_end # just to make sure we arrive to the border
+# y_s = np.arange(y_s_start, y_s_end, step_s_y)
+# y_s[-1] = y_s_end
+x_s = np.linspace(x_s_start, x_s_end, n_step_s)
+y_s = np.linspace(y_s_start, y_s_end, n_step_s)
 
 #boundaries
 bc_E = "D"
@@ -44,5 +69,6 @@ GF_x = return_GF_1D_array(x, x_s_start, x_s_end, Lx, bc_E, bc_W) # 1D GF(x_s)
 GF_y = return_GF_1D_array(y, y_s_start, x_s_end, Ly, bc_S, bc_N) # 1D GF(y_s)
 
 # East integral -> Dirichlet
-dGdx = np.diff(GF_y) / np.diff(x_s)
+dGdx = np.zeros(n_step_s)
+dGdx[1:] = np.diff(GF_y) / np.diff(x_s)
 integral_GF_E = np.trapz(dGdx*T, y_s) #over y
