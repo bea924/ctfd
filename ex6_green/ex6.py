@@ -39,7 +39,7 @@ y_s_start = 0
 y_s_end = Ly
 
 # x_s and y_s array for integral calculation
-n_step_s = 20
+n_step_s = 21
 step_s_x = (x_s_end-x_s_start)/n_step_s
 step_s_y = (y_s_end-y_s_start)/n_step_s
 # x_s = np.arange(x_s_start, x_s_end, step_s_x)
