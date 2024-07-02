@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from ex6_func import GF_function, GF_1D_function, return_GF_matrix, return_GF_1D_array
+from ex6_func import GF_function, GF_1D_function, return_GF_matrix, return_GF_1D_array, HeatEq_2D_point
 
 
 # test plot
@@ -14,17 +14,17 @@ for i in range(20):
         plot_GF[i, j] = GF_function(x[i], y[j], x_s, y_s, Lx, Ly, bc_e = "N", bc_n = "N", bc_w = "D", bc_s = "D")
         
 
-# Plot the heatmap
-plt.imshow(plot_GF, cmap='jet', interpolation='nearest', origin = 'lower')
-plt.colorbar()  # Add a color bar to show the color scale
-plt.title('Heatmap of 2D NumPy Array')
-plt.xlabel('Column Index')
-plt.ylabel('Row Index')
-plt.show()
+# # Plot the heatmap
+# plt.imshow(plot_GF, cmap='jet', interpolation='nearest', origin = 'lower')
+# plt.colorbar()  # Add a color bar to show the color scale
+# plt.title('Heatmap of 2D NumPy Array')
+# plt.xlabel('Column Index')
+# plt.ylabel('Row Index')
+# plt.show()
 
 
-
-# omega = 5
+# 2
+omega = 5
 lambda_v = 1
 Lx = Ly = 1
 
@@ -56,19 +56,8 @@ bc_W = "D"
 bc_S = "D"
 
 # boundary values (T or q)
-T = 10
+Temp = 10
 q = 3
 
-# 2D GF integral over surface
-GF_S = return_GF_matrix(x, y, x_s_start, x_s_end, y_s_start, y_s_end, Lx, Ly, bc_E, bc_N, bc_W, bc_S) # 2D GF(x_s, y_s)
-integral_GF_ys = np.trapz(GF_S*omega, y_s, axis=0) #over y
-integral_GF_ys_xs = np.trapz(integral_GF_ys, x_s) #over x
-
-# 1D GF as a function of xs and ys
-GF_x = return_GF_1D_array(x, x_s_start, x_s_end, Lx, bc_E, bc_W) # 1D GF(x_s)
-GF_y = return_GF_1D_array(y, y_s_start, x_s_end, Ly, bc_S, bc_N) # 1D GF(y_s)
-
-# East integral -> Dirichlet
-dGdx = np.zeros(n_step_s)
-dGdx[1:] = np.diff(GF_y) / np.diff(x_s)
-integral_GF_E = np.trapz(dGdx*T, y_s) #over y
+T_xy = HeatEq_2D_point(0.1, 0.1, omega, lambda_v, Lx, Ly, x_s_start, x_s_end, y_s_start, y_s_end, bc_E, bc_N, bc_W, bc_S, Temp, q)
+print(T_xy)

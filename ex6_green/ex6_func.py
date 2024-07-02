@@ -73,14 +73,7 @@ def GF_1D_function(x, x_s, Length, bc_in: str, bc_out: str, truncation = 50):
     return sum
 
 
-def return_GF_matrix(x, y, x_s_start, x_s_end, y_s_start, y_s_end, Lx, Ly, bc_e: str, bc_n: str, bc_w: str, bc_s: str, n_step_s = 21):
-    # returns GF as a function of x_s and y_s and for a specific x and y value
-    # step_s_x = (x_s_end-x_s_start)/n_step_s
-    # step_s_y = (y_s_end-y_s_start)/n_step_s
-    # x_s = np.arange(x_s_start, x_s_end, step_s_x)
-    # x_s[-1] = x_s_end # just to make sure we arrive to the border
-    # y_s = np.arange(y_s_start, y_s_end, step_s_y)
-    # y_s[-1] = y_s_end # just to make sure we arrive to the borders
+def return_GF_matrix(x, y, x_s_start, x_s_end, y_s_start, y_s_end, Lx, Ly, bc_e: str, bc_n: str, bc_w: str, bc_s: str, n_step_s = 20):
     x_s = np.linspace(x_s_start, x_s_end, n_step_s)
     y_s = np.linspace(y_s_start, y_s_end, n_step_s)
 
@@ -94,9 +87,6 @@ def return_GF_matrix(x, y, x_s_start, x_s_end, y_s_start, y_s_end, Lx, Ly, bc_e:
 
 
 def return_GF_1D_array(x, x_s_start, x_s_end, Lx, bc_in: str, bc_out: str, n_step_s = 20):
-    # step_s_x = (x_s_end-x_s_start)/n_step_s
-    # x_s = np.arange(0, Lx, step_s_x)
-    # x_s[-1] = x_s_end # just to make sure we arrive to the border
     x_s = np.linspace(x_s_start, x_s_end, n_step_s)
 
     GF_matrix = np.zeros(n_step_s)
@@ -107,7 +97,7 @@ def return_GF_1D_array(x, x_s_start, x_s_end, Lx, bc_in: str, bc_out: str, n_ste
     return GF_matrix
 
 
-def HeatEq_2D_point(x, y, omega, lambda_v, Lx, Ly, x_s_start, x_s_end, y_s_start, y_s_end, bc_e: str, bc_n: str, bc_w: str, bc_s: str, T, q, n_step_s = 21):
+def HeatEq_2D_point(x, y, omega, lambda_v, Lx, Ly, x_s_start, x_s_end, y_s_start, y_s_end, bc_e: str, bc_n: str, bc_w: str, bc_s: str, T, q, n_step_s = 20):
     x_s = np.linspace(x_s_start, x_s_end, n_step_s)
     y_s = np.linspace(y_s_start, y_s_end, n_step_s)
 
@@ -138,11 +128,11 @@ def HeatEq_2D_point(x, y, omega, lambda_v, Lx, Ly, x_s_start, x_s_end, y_s_start
         dGdy_N[1:] = np.diff(GF_x_N) / np.diff(y_s)
         integral_GF_N = np.trapz(dGdy_N*T, x_s) #over x
     elif (bc_n == "N"): # Neumann
+        GF_y_N = GF_y[::-1] # swap because of line direction
         dTdy_N = np.zeros(n_step_s)
-        dTdy_N = np.dot(GF_y, q)/lambda_v
+        dTdy_N = np.dot(GF_y_N, q)/lambda_v
         integral_GF_N = np.trapz(dTdy_N, x_s)
         
-
     # West integral
     if (bc_w == "D"): # Dirichlet
         GF_y_W = GF_y[::-1] # swap because of line direction
@@ -150,11 +140,11 @@ def HeatEq_2D_point(x, y, omega, lambda_v, Lx, Ly, x_s_start, x_s_end, y_s_start
         dGdx_W[1:] = np.diff(GF_y_W) / np.diff(x_s)
         integral_GF_W = np.trapz(dGdx_W*T, y_s) #over y
     elif (bc_w == "N"): # Neumann
+        GF_x_W = GF_x[::-1] # swap because of line direction
         dTdx_W = np.zeros(n_step_s)
-        dTdx_W = np.dot(GF_x, q)/lambda_v
+        dTdx_W = np.dot(GF_x_W, q)/lambda_v
         integral_GF_W = np.trapz(dTdx_W, y_s) 
         
-
     # South integral
     if (bc_s == "D"): # Dirichlet
         dGdy_S = np.zeros(n_step_s)
@@ -165,6 +155,5 @@ def HeatEq_2D_point(x, y, omega, lambda_v, Lx, Ly, x_s_start, x_s_end, y_s_start
         dTdy_S = np.dot(GF_y, q)/lambda_v
         integral_GF_S = np.trapz(dTdy_S, x_s)
         
-
     T_xy = integral_GF_ys_xs + integral_GF_E + integral_GF_N + integral_GF_W + integral_GF_S
     return T_xy
