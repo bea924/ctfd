@@ -13,7 +13,7 @@ u_L = 0.0           # Velocity in m/s
 
 # Right state (R)
 # d_R = 0.125       # Density in kg/m³
-d_R = 1.0      # Density in kg/m³
+d_R = 1.0           # Density in kg/m³
 p_R = 0.1 * MPA     # Pressure in Pa (0.1 MPa)
 u_R = 0.0           # Velocity in m/s
 
