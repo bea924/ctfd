@@ -2,7 +2,7 @@ from configparser import ConfigParser
 import numpy as np
 
 
-def inputfile_read(path: str = "exact.ini"):
+def inputfile_read(path: str = "project/numerica/exact.ini"):
     # read file
     config = ConfigParser()
     config.read(path)
@@ -59,7 +59,7 @@ def initial_conditions_set(n_cells, diaphragm_position, dx, d_initial_L, u_initi
 
     for i in range(1, n_cells+1):
         position_x = (i-0.5)*dx
-        if position_x < diaphragm_position:
+        if position_x <= diaphragm_position:
             density[i] = d_initial_L
             velocity[i] = u_initial_L
             pressure[i] = p_initial_L
@@ -81,7 +81,7 @@ def boundary_conditions_set(density, velocity, pressure, boundary_L, boundary_R)
     - for d u p at left and right
     - the first and last cells are the border
     """
-    if boundary_L: # 0 = transmissive
+    if boundary_L == 0: # 0 = transmissive
         density[0] = density[1] # not sure if the dimension is n cells or 3000???
         velocity[0] = velocity[1]
         pressure[0] = pressure[1] 
@@ -90,7 +90,7 @@ def boundary_conditions_set(density, velocity, pressure, boundary_L, boundary_R)
         velocity[0] = -velocity[1]
         pressure[0] = pressure[1]
     
-    if boundary_R: # 0 = transmissive
+    if boundary_R == 0: # 0 = transmissive
         density[-1] = density[-2]
         velocity[-1] = velocity[-2]
         pressure[-1] = pressure[-2]
@@ -375,7 +375,7 @@ def sample(gamma, s, um, pm, d_L, u_L, p_L, c_L, d_R, u_R, p_R, c_R):
     return d, u, p
     
 
-def output_to_file(n_cells, dx, density, velocity, pressure, g8, path:str = "exact.out"):
+def output_to_file(n_cells, dx, density, velocity, pressure, g8, path:str = "project/numerica/exact.out"):
     ps_scale = 1
     with open(path, 'w') as file:
         for i in range(1, n_cells + 1):

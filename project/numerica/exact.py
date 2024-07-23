@@ -11,7 +11,7 @@ from exact_func import inputfile_read, gamma_constants_calculate, initial_condit
 #######################################################################################################################
 # read file
 domain_length, diaphragm_position1, n_cells, gamma, output_time, d_initial_L, u_initial_L, p_initial_L, d_initial_M, u_initial_M, p_initial_M, \
-       d_initial_R, u_initial_R, p_initial_R, diaphragm_position2, courant,boundary_L, boundary_R, output_frequency, max_timesteps, pressure_scaling_factor = inputfile_read()
+       d_initial_R, u_initial_R, p_initial_R, diaphragm_position2, courant,boundary_L, boundary_R, output_frequency, max_timesteps, pressure_scaling_factor = inputfile_read(path="exact.ini")
 
 # calculate some stuff
 g1, g2, g3, g4, g5, g6, g7, g8 = gamma_constants_calculate(gamma)
@@ -43,5 +43,5 @@ for n in range(max_timesteps):
         print(f"{n:} {time:14.6f} {output_time:14.6f}")
 
     if time_difference < time_difference_tolerance:
-        output_to_file(n_cells, dx, density, velocity, pressure, g8)
+        output_to_file(n_cells, dx, density, velocity, pressure, g8, path="exact.out")
         break
