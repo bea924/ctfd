@@ -1,14 +1,14 @@
 import numpy as np
-from project.numerica.riemann_functions import inputfile_read, gamma_constants_calculate, initial_conditions_set, boundary_conditions_set, cfl_conditions_impose, godunov_flux_compute, update, output_to_file
-from project.numerica.godunov_exact_solver import godunov_exact_riemann_solver
-# from roe_solver import godunov_roe_solver
+from riemann_functions import inputfile_read, gamma_constants_calculate, initial_conditions_set, boundary_conditions_set, cfl_conditions_impose, update, output_to_file
+from godunov_exact_solver import godunov_exact_riemann_solver
+from godunov_roe_solver import godunov_roe_solver
 from laxfried_solver import laxfriedriechs_solver
 
 # read file
 domain_length, diaphragm_position, n_cells, gamma, output_time, d_initial_L, u_initial_L, p_initial_L, d_initial_M, u_initial_M, p_initial_M, \
        d_initial_R, u_initial_R, p_initial_R, courant, boundary_L, boundary_R, output_frequency, max_timesteps, pressure_scaling_factor, solver = inputfile_read(path="exact.ini")
 # domain_length, diaphragm_position, n_cells, gamma, output_time, d_initial_L, u_initial_L, p_initial_L, d_initial_M, u_initial_M, p_initial_M, \
-    #    d_initial_R, u_initial_R, p_initial_R, courant, boundary_L, boundary_R, output_frequency, max_timesteps, pressure_scaling_factor, solver = inputfile_read() # for debugger
+#        d_initial_R, u_initial_R, p_initial_R, courant, boundary_L, boundary_R, output_frequency, max_timesteps, pressure_scaling_factor, solver = inputfile_read() # for debugger
 
 output_filename = f"output_t{output_time}_solver{solver}"
 
@@ -34,8 +34,8 @@ for n in range(max_timesteps):
         fluxes = godunov_exact_riemann_solver(n_cells, gamma, density, velocity, pressure, sound_speed, g8)
     elif solver == 1:
         fluxes = laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dx, dt, g8)
-    # elif solver == 2:
-        # fluxes = godunov_roe_solver()
+    elif solver == 2:
+        fluxes = godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx, gamma, g8)
     # fluxes = godunov_flux_compute(solver, n_cells, gamma, density, velocity, pressure, sound_speed, conserved_var, g8)
 
     # update solution with conservative (godsunov?) UPDATE

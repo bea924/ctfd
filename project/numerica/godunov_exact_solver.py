@@ -1,5 +1,5 @@
 import numpy as np
-from project.numerica.riemann_functions import gamma_constants_calculate
+from riemann_functions import gamma_constants_calculate
 
 
 def godunov_exact_riemann_solver(n_cells, gamma, density, velocity, pressure, sound_speed, g8): # for now only exact riemann RPGODU
