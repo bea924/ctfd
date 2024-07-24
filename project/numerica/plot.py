@@ -2,9 +2,15 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+# 0 exact
+# 1 lax
+# 2 roe
+solver = 0
+output_time = 0.2
+
 
 # Read the .out file
-file_path = 'exact.out'
+file_path = f'output/output_t{output_time}_solver{solver}.out'
 data = pd.read_csv(file_path, delim_whitespace=True, header=None)
 
 # Print the data to verify

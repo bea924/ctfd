@@ -36,7 +36,6 @@ for n in range(max_timesteps):
         fluxes = laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dx, dt, g8)
     elif solver == 2:
         fluxes = godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx, gamma, g8)
-    # fluxes = godunov_flux_compute(solver, n_cells, gamma, density, velocity, pressure, sound_speed, conserved_var, g8)
 
     # update solution with conservative (godsunov?) UPDATE
     conserved_var, density, velocity, pressure = update(n_cells, conserved_var, fluxes, dt, dx, density, velocity, pressure, g8)
