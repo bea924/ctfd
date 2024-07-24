@@ -18,7 +18,7 @@ columns[2] = data[2].to_numpy()
 columns[3] = data[3].to_numpy()
 columns[4] = data[4].to_numpy()
 
-columns_names = ["X_position", "Density", "Velocity", "Pressure", "Energy"]
+columns_names = ["Density", "Velocity", "Pressure", "Energy"]
 
 
 # Create a figure and subplots
