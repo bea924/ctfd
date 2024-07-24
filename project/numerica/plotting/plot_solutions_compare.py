@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 # 1 lax
 # 2 roe
 solver_list = [0, 1, 2]
-output_time = 0.2
+output_time = 0.20
 
 solver_dict = {
     0: 'Exact',
@@ -18,7 +18,7 @@ fig, axes = plt.subplots(4, 1, figsize=(6, 8))
 
 for j, solver in enumerate(solver_list):
     # Read the .out file
-    file_path = f'output/solver{solver}_t{output_time}.out'
+    file_path = f'output/solver{solver}_t{output_time:.2f}.out'
     # file_path = f'project/numerica/output/solver{solver}_t{output_time}.out' # for debugger
     data = pd.read_csv(file_path, delim_whitespace=True, header=None)
 

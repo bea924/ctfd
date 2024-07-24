@@ -19,7 +19,7 @@ solver_dict = {
 for i, solver in enumerate(solver_list):
     # Read the .out file
     file_path = f'output/solver{solver}_t{output_time}_stats.out'
-    # file_path = f'project/numerica/output/solver{solver}_t{output_time}_stats.out' # for debugger
+    # file_path = f'project/numerica/output/solver{solver}_t{output_time}_stats.out' # for
     runtime = pd.read_csv(file_path, delim_whitespace=True, header=None)
 
     runtime = runtime[0].to_numpy()
