@@ -47,7 +47,7 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
 
         # compute increments
         u_diff = u_local_R - u_local_L
-        p_diff = p_local_R + p_local_L
+        p_diff = p_local_R - p_local_L
 
         # identify wave pattern
         if u_local_avg > 0:
