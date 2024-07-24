@@ -9,7 +9,7 @@ def inputfile_read(path: str = "project/numerica/exact.ini"):
 
     # assign to variables
     domain_length = float(config["General"]["domain_length"])
-    diaphragm_position1 = float(config["General"]["diaphragm_position1"])
+    diaphragm_position = float(config["General"]["diaphragm_position"])
     n_cells = int(config["General"]["n_cells"])
     gamma = float(config["Constants"]["gamma"])
     output_time = float(config["General"]["output_time"])
@@ -22,16 +22,16 @@ def inputfile_read(path: str = "project/numerica/exact.ini"):
     d_initial_R = float(config["Variables"]["d_R"])
     u_initial_R = float(config["Variables"]["u_R"])
     p_initial_R = float(config["Variables"]["p_R"])
-    diaphragm_position2 = float(config["General"]["diaphragm_position2"])
     courant = float(config["Constants"]["courant"])
     boundary_L = int(config["Constants"]["boundary_L"])
     boundary_R = int(config["Constants"]["boundary_R"])
     output_frequency = int(config["General"]["output_frequency"])
     max_timesteps = int(config["General"]["max_timesteps"])
     pressure_scaling_factor = float(config["General"]["pressure_scaling_factor"])
+    solver = int(config["General"]["solver"])
 
-    return domain_length, diaphragm_position1, n_cells, gamma, output_time, d_initial_L, u_initial_L, p_initial_L, d_initial_M, u_initial_M, p_initial_M, \
-       d_initial_R, u_initial_R, p_initial_R, diaphragm_position2,courant,boundary_L,boundary_R,output_frequency,max_timesteps,pressure_scaling_factor
+    return domain_length, diaphragm_position, n_cells, gamma, output_time, d_initial_L, u_initial_L, p_initial_L, d_initial_M, u_initial_M, p_initial_M, \
+       d_initial_R, u_initial_R, p_initial_R, courant, boundary_L, boundary_R, output_frequency, max_timesteps, pressure_scaling_factor, solver
 
 
 def gamma_constants_calculate(gamma):
@@ -82,7 +82,7 @@ def boundary_conditions_set(density, velocity, pressure, boundary_L, boundary_R)
     - the first and last cells are the border
     """
     if boundary_L == 0: # 0 = transmissive
-        density[0] = density[1] # not sure if the dimension is n cells or 3000???
+        density[0] = density[1]
         velocity[0] = velocity[1]
         pressure[0] = pressure[1] 
     else: # 1 = reflective
@@ -114,7 +114,8 @@ def cfl_conditions_impose(n_cells, dx, courant, density, velocity, pressure, n, 
 
     # find S max
     for i in range(n_cells+2):
-        sound_speed[i] = np.sqrt(gamma*pressure[i]) / density[i]
+        # sound_speed[i] = np.sqrt(gamma*pressure[i]) / density[i] IT WAS LIKE THIS BEFORE AND STILL WORKED!!!
+        sound_speed[i] = np.sqrt(gamma*pressure[i] / density[i])
         S_current = np.abs(velocity[i]) + sound_speed[i]
         if S_current > S_max:
             S_max = S_current
@@ -134,35 +135,39 @@ def cfl_conditions_impose(n_cells, dx, courant, density, velocity, pressure, n, 
     return dt, time, sound_speed
 
 
-def godunov_flux_compute(n_cells, gamma, density, velocity, pressure, sound_speed, g8): # for now only exact riemann RPGODU
+def godunov_flux_compute(solver, n_cells, gamma, density, velocity, pressure, sound_speed, conserved_var, g8): # for now only exact riemann RPGODU
     """
     compute godunov intercell flux using the chose solver (for now only exact riemann)
     """
-    x_over_t = 0 # x/t must be 0 for the godunov
-    fluxes = np.zeros((3, n_cells+2))
-    
-    for i in range(n_cells+1):
-        d_local_L = density[i]
-        u_local_L = velocity[i]
-        p_local_L = pressure[i]
-        c_local_L = sound_speed[i]
-        d_local_R = density[i+1]
-        u_local_R = velocity[i+1]
-        p_local_R = pressure[i+1]
-        c_local_R = sound_speed[i+1]
 
-        # calls exact riemann solver, get star region values
-        pm, um = exact_riemann_solver(gamma, d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R)
+    if solver == 0: # calls exact riemann solver, get star region values
+        x_over_t = 0 # x/t must be 0 for the godunov
+        fluxes = np.zeros((3, n_cells+2))
         
-        # calls sample for x_over_t=0
-        # get godunov state values
-        dsam, usam, psam = sample(gamma, x_over_t, um, pm, d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R)
-            
-        # calculate intercell flux 1 2 3
-        fluxes[0, i] = dsam * usam
-        fluxes[1, i] = dsam * usam * usam + psam
-        energy = 0.5 * usam * usam * dsam + psam/g8
-        fluxes[2, i] = usam * (energy + psam)
+        for i in range(n_cells+1):
+            d_local_L = density[i]
+            u_local_L = velocity[i]
+            p_local_L = pressure[i]
+            c_local_L = sound_speed[i]
+            d_local_R = density[i+1]
+            u_local_R = velocity[i+1]
+            p_local_R = pressure[i+1]
+            c_local_R = sound_speed[i+1]
+
+            pm, um = exact_riemann_solver(gamma, d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R)
+
+            # calls sample for x_over_t=0
+            # get godunov state values
+            dsam, usam, psam = sample(gamma, x_over_t, um, pm, d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R)
+                
+            # calculate intercell flux 1 2 3
+            fluxes[0, i] = dsam * usam
+            fluxes[1, i] = dsam * usam * usam + psam
+            energy = 0.5 * usam * usam * dsam + psam/g8
+            fluxes[2, i] = usam * (energy + psam)
+
+    else: # calls roe solver, get star region values
+        fluxes = roe_solver(n_cells, conserved_var, density, )
 
     return fluxes
 
@@ -186,7 +191,7 @@ def update(n_cells, conserved_var, fluxes, dt, dx, density, velocity, pressure, 
 
 
 #######################################################################################################################
-#######################################################################################################################
+################################# EXACT RIEMANN #######################################################################
 #######################################################################################################################
 def exact_riemann_solver(gamma, d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R, max_iterations=20, tolerance=1e-05): #EXACT
     """
@@ -279,6 +284,7 @@ def prefun(p, p_K, c_K, d_K, g1, g2, g4, g5, g6):
         fd = (1.0 - 0.5*(p - p_K)/(b_K + p)) * qrt
 
     return f, fd
+
 
 
 #######################################################################################################################
