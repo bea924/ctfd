@@ -2,7 +2,7 @@ from configparser import ConfigParser
 import numpy as np
 
 
-def inputfile_read(path: str = "project/numerica/exact.ini"):
+def inputfile_read(path):
     # read file
     config = ConfigParser()
     config.read(path)
@@ -150,10 +150,18 @@ def update(n_cells, conserved_var, fluxes, dt, dx, density, velocity, pressure, 
     return conserved_var, density, velocity, pressure
    
 
-def output_to_file(n_cells, dx, density, velocity, pressure, g8, path:str = "project/numerica/exact.out"):
+def output_to_file(n_cells, dx, density, velocity, pressure, g8, path):
     ps_scale = 1
     with open(path, 'w') as file:
         for i in range(1, n_cells + 1):
             xpos = (i - 0.5) * dx
             energy = pressure[i] / density[i] / g8 / ps_scale
             file.write(f"{xpos:14.6f} {density[i]:14.6f} {velocity[i]:14.6f} {pressure[i] / ps_scale:14.6f} {energy:14.6f}\n")
+
+
+
+def output_to_file_stats(runtime, path):
+    ps_scale = 1
+    with open(path, 'w') as file:
+        for i in range(len(runtime)):
+            file.write(f"{runtime[i]:14.6f}\n")

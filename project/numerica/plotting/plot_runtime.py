@@ -8,9 +8,8 @@ import matplotlib.pyplot as plt
 solver = 0
 output_time = 0.2
 
-
 # Read the .out file
-file_path = f'output/output_t{output_time}_solver{solver}.out'
+file_path = f'output/solver{solver}_t{output_time}.out'
 data = pd.read_csv(file_path, delim_whitespace=True, header=None)
 
 # Print the data to verify
