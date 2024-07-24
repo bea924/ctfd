@@ -11,10 +11,9 @@ input_file = "riemann.ini"
 # read file
 domain_length, diaphragm_position, n_cells, gamma, output_time, d_initial_L, u_initial_L, p_initial_L, d_initial_M, u_initial_M, p_initial_M, \
        d_initial_R, u_initial_R, p_initial_R, courant, boundary_L, boundary_R, output_frequency, max_timesteps, pressure_scaling_factor, solver = inputfile_read(path=input_file)
-# domain_length, diaphragm_position, n_cells, gamma, output_time, d_initial_L, u_initial_L, p_initial_L, d_initial_M, u_initial_M, p_initial_M, \
-#        d_initial_R, u_initial_R, p_initial_R, courant, boundary_L, boundary_R, output_frequency, max_timesteps, pressure_scaling_factor, solver = inputfile_read() # for debugger
 
-output_filename = f"solver{solver}_t{output_time}"
+output_filename = f"solver{solver}_t{output_time:.2f}"
+# float(f"{output_time:.2f}")
 runtime_elapsed = []
 
 # calculate some stuff
