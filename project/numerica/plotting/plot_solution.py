@@ -2,14 +2,21 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-# 0 exact
-# 1 lax
-# 2 roe
-solver = 0
-output_time = 0.2
+
+##################################
+######### USER INPUT #############
+##################################
+# Choose the problem type: ModifiedSod, StationaryContact
+problem_type = "ModifiedSod"
+# choose the solver: ExactRiemann [0], LaxFriedrichs [1], Roe [2]
+solver = 1
+output_time = 0.01
+##################################
+##################################
+
 
 # Read the .out file
-file_path = f'output/solver{solver}_t{output_time}.out'
+file_path = f'output/{problem_type}/solver{solver}_t{output_time:.2f}.out'
 data = pd.read_csv(file_path, delim_whitespace=True, header=None)
 
 # Print the data to verify
@@ -32,11 +39,14 @@ x = np.arange(0,100)
 
 # Plot each column in a separate subplot
 for i in range(4):
-    axes[i].plot(columns[0], columns[i+1], label=columns_names[i])
-    axes[i].set_title(f'Plot of {columns_names[i]}')
+    axes[i].plot(columns[0], columns[i+1])
+    # axes[i].set_title(f'Plot of {columns_names[i]}')
+    axes[i].set_xlabel('x')
+    axes[i].set_ylabel(f'{columns_names[i]}')
     axes[i].legend()
     axes[i].grid(True)
 
+fig.suptitle(f"{problem_type}, output time {output_time}", fontsize=16)
 # Adjust layout
 plt.tight_layout()
 

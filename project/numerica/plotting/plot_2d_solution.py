@@ -29,7 +29,7 @@ for i, output_time in enumerate(output_time_array):
 
     columns_names = ["X_position", "Density", "Velocity", "Pressure", "Energy"]
 
-    solution_2d[i] = columns[2] # i want velocity for now
+    solution_2d[i] = columns[4] # i want velocity for now
 
 
 # Plot the matrix as a color map

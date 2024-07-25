@@ -45,6 +45,8 @@ for j, solver in enumerate(solver_list):
 
 for i in range(4):
     axes[i].set_title(f'Plot of {columns_names[i]}')
+    axes[i].set_xlabel('x')
+    axes[i].set_ylabel(f'{columns_names[i]}')
     axes[i].legend()
     axes[i].grid(True)
 
