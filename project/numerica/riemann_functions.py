@@ -1,20 +1,80 @@
 from configparser import ConfigParser
 import numpy as np
 import os
+import time
 from global_variables import GAMMA, G8
+from godunov_exact_solver import godunov_exact_riemann_solver
+from godunov_roe_solver import godunov_roe_solver
+from laxfried_solver import laxfriedriechs_solver
+
+
+
+def main_riemann_solver(problem_type, solver, output_time, input_file="riemann.ini"):
+    # read file
+    domain_length, diaphragm_position, n_cells, d_initial_L, u_initial_L, p_initial_L, \
+        d_initial_R, u_initial_R, p_initial_R, courant, boundary_L, boundary_R, output_frequency, max_timesteps, pressure_scaling_factor = inputfile_read(path=input_file, problem_type=problem_type)
+
+    output_filename = f"solver{solver}_t{output_time:.2f}"
+    runtime_elapsed = []
+   
+    # set initial conditions
+    dx = domain_length/n_cells # costant mesh size
+    density, velocity, pressure, conserved_var = initial_conditions_set(n_cells, diaphragm_position, dx, d_initial_L, u_initial_L, p_initial_L, d_initial_R, u_initial_R, p_initial_R)
+
+
+    simulation_time = 0
+    simulation_time_diff_tolerance = 1e-06
+    for n in range(max_timesteps):
+        start_runtime = time.time()
+        # set coundary conditions BCONDI
+        density, velocity, pressure = boundary_conditions_set(density, velocity, pressure, boundary_L, boundary_R)
+
+        # impose courant cfl condition CFLCON
+        dt, simulation_time, sound_speed = cfl_conditions_impose(n_cells, dx, courant, density, velocity, pressure, n, simulation_time, output_time)
+
+        # compute intercell fluxes based on method chosen RPGODU
+        if solver == 0:
+            fluxes = godunov_exact_riemann_solver(n_cells, density, velocity, pressure, sound_speed)
+        elif solver == 1:
+            fluxes = laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dx, dt)
+        elif solver == 2:
+            fluxes = godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx)
+
+        # update solution with conservative (godsunov?) UPDATE
+        conserved_var, density, velocity, pressure = update(n_cells, conserved_var, fluxes, dt, dx, density, velocity, pressure)
+
+        # save the runtime
+        end_runtime = time.time()
+        runtime = end_runtime - start_runtime
+        runtime_elapsed.append(runtime)
+
+        # check if output needed (aka if at the end on the time limit utput?)
+        simulation_time_diff = np.abs(simulation_time - output_time)
+
+        if n%output_frequency == 0:
+            print(f"{n:} {simulation_time:14.6f} {output_time:14.6f}")
+
+        if simulation_time_diff < simulation_time_diff_tolerance:
+            # output the solution
+            output_to_file(n_cells, dx, density, velocity, pressure, folder_path=f"output/{problem_type}", filename=f"{output_filename}.out") 
+            # output_to_file(n_cells, dx, density, velocity, pressure, path=f"project/numerica/output/{output_filename}.out") # for debugger
+
+            # output the solution stats
+            output_to_file_stats(runtime_elapsed, path=f"output/{problem_type}/{output_filename}_stats.out") 
+            break
 
 
 def inputfile_read(path, problem_type: str):
     # read file
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(script_dir, path)
     config = ConfigParser()
-    config.read(path)
+    config.read(file_path)
 
     # assign to variables
     domain_length = float(config[problem_type]["domain_length"])
     diaphragm_position = float(config[problem_type]["diaphragm_position"])
     n_cells = int(config[problem_type]["n_cells"])
-    GAMMA = float(config[problem_type]["GAMMA"])
-    output_time = float(config[problem_type]["output_time"])
     d_initial_L = float(config[problem_type]["d_L"])
     u_initial_L = float(config[problem_type]["u_L"])
     p_initial_L = float(config[problem_type]["p_L"])
@@ -28,7 +88,7 @@ def inputfile_read(path, problem_type: str):
     max_timesteps = int(config[problem_type]["max_timesteps"])
     pressure_scaling_factor = float(config[problem_type]["pressure_scaling_factor"])
 
-    return domain_length, diaphragm_position, n_cells, GAMMA, d_initial_L, u_initial_L, p_initial_L, \
+    return domain_length, diaphragm_position, n_cells, d_initial_L, u_initial_L, p_initial_L, \
        d_initial_R, u_initial_R, p_initial_R, courant, boundary_L, boundary_R, output_frequency, max_timesteps, pressure_scaling_factor
 
 
@@ -137,11 +197,13 @@ def update(n_cells, conserved_var, fluxes, dt, dx, density, velocity, pressure):
    
 
 def output_to_file(n_cells, dx, density, velocity, pressure, folder_path, filename):
+    # read file
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    folder_path = os.path.join(script_dir, folder_path)
+
     # Check if the folder exists, if not, create it
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
-
-    # Now you can safely create your output file in this folder
     file_path = os.path.join(folder_path, filename)
 
     ps_scale = 1
