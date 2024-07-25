@@ -1,7 +1,8 @@
 import numpy as np
+from global_variables import G8
 
 
-def laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dx, dt, g8):
+def laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dx, dt):
     """
     compute an intercell flux FI(K, I) according to the Lax-Friedrichs scheme
     """ 
@@ -13,7 +14,7 @@ def laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, con
     for i in range(n_cells+2):
         conserved_var[0, i] = density[i]
         conserved_var[1, i] = density[i] * velocity[i]
-        conserved_var[2, i] = 0.5 * density[i] * velocity[i] * velocity[i] + pressure[i]/g8
+        conserved_var[2, i] = 0.5 * density[i] * velocity[i] * velocity[i] + pressure[i]/G8
 
         fd[0,i] = conserved_var[1,i]
         fd[1,i] = conserved_var[1,i] * velocity[i] + pressure[i]

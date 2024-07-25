@@ -1,7 +1,8 @@
 import numpy as np
+from global_variables import GAMMA, G8
 # e1godf
 
-def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx, gamma, g8, entropy_fix_parameter=0.1):
+def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx, entropy_fix_parameter=0.1):
     """
     to compute an intercell Godunov flux using the ROE approximate Riemann solver with entropy fix
     according to Harten and Hyman. See Chap. 11 of Ref. 1 and original references therein
@@ -16,7 +17,7 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
         if (i < 1) or (i > n_cells): # i guess filling in where the conserved varaibles are still 0?
             conserved_var[0, i] = density[i]
             conserved_var[1, i] = density[i] * velocity[i]
-            conserved_var[2, i] = 0.5 * density[i] * velocity[i] * velocity[i] + pressure[i]/g8
+            conserved_var[2, i] = 0.5 * density[i] * velocity[i] * velocity[i] + pressure[i]/G8
 
         fd[0,i] = conserved_var[1,i]
         fd[1,i] = conserved_var[1,i] * velocity[i] + pressure[i]
@@ -43,7 +44,7 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
         d_local_avg = roe_avg * d_local_L
         u_local_avg = (u_local_L + roe_avg*u_local_R) / (1 + roe_avg)
         h_local_avg = (h_local_L + roe_avg*h_local_R) / (1 + roe_avg)
-        c_local_avg = np.sqrt(g8 * (h_local_avg - 0.5*u_local_avg*u_local_avg))
+        c_local_avg = np.sqrt(G8 * (h_local_avg - 0.5*u_local_avg*u_local_avg))
 
         # compute increments
         u_diff = u_local_R - u_local_L
@@ -60,7 +61,7 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
             if np.abs(cflm)  < entropy_fix_parameter:
                 # small left wave speed is identified
                 sig = 1
-                umm, cmm = starvals(sig, d_local_L, u_local_L, e_local_L, ak, u_local_avg, c_local_avg, h_local_avg, gamma, g8)
+                umm, cmm = starvals(sig, d_local_L, u_local_L, e_local_L, ak, u_local_avg, c_local_avg, h_local_avg)
                 sml = u_local_L - c_local_L
                 smr = umm - cmm
 
@@ -95,7 +96,7 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
                 # Small right wave speed is identified
                 # Use Roe's Riemann solver to find particle speed UMM and sound speed CMM in start right state
                 sig = -1
-                umm, cmm = starvals(sig, d_local_R, u_local_R, e_local_R, ak, u_local_avg, c_local_avg, h_local_avg, gamma, g8)
+                umm, cmm = starvals(sig, d_local_R, u_local_R, e_local_R, ak, u_local_avg, c_local_avg, h_local_avg)
                 sml = umm + cmm
                 smr = u_local_R + c_local_R
 
@@ -124,7 +125,7 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
 
 
 
-def starvals(sig, d_local_K, u_local_K, e_local_K, ak, u_local_avg, c_local_avg, h_local_avg, gamma, g8):
+def starvals(sig, d_local_K, u_local_K, e_local_K, ak, u_local_avg, c_local_avg, h_local_avg):
     """
     to compute particle velocity and sound speed in
     appropriate Star state, according to Roe's Riemann
@@ -134,7 +135,7 @@ def starvals(sig, d_local_K, u_local_K, e_local_K, ak, u_local_avg, c_local_avg,
 
     dmk = d_local_K + sig*ak
     umm = (d_local_K*u_local_K + sig*ak*(u_local_avg - sig*c_local_avg)) / dmk
-    pm = g8 * (e_local_K + sig*ak*(h_local_avg - sig*u_local_avg*c_local_avg) - 0.5*dmk*umm*umm)
-    cmm = np.sqrt(gamma * pm/dmk)
+    pm = G8 * (e_local_K + sig*ak*(h_local_avg - sig*u_local_avg*c_local_avg) - 0.5*dmk*umm*umm)
+    cmm = np.sqrt(GAMMA * pm/dmk)
 
     return umm, cmm
