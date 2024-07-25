@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 
 ##################################
 ######### USER INPUT #############
@@ -16,22 +17,29 @@ output_time = 0.2
 
 fig, axes = plt.subplots(1, 1, figsize=(8, 6))
 solver_dict = {
-    0: 'Exact',
-    1: "Lax",
+    0: 'ExactRiemann',
+    1: "LaxFriedrichs",
     2: 'Roe'
 }
+solver_color_dict = {
+    0: 'green',
+    1: "blue",
+    2: 'purple'
+}
+
+# Get current directory
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
 for i, solver in enumerate(solver_list):
     # Read the .out file
-    file_path = f'output/{problem_type}/solver{solver}_t{output_time:.2f}_stats.out'
-    # file_path = f'project/numerica/output/solver{solver}_t{output_time}_stats.out' # for
+    file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver{solver}_t{output_time:.2f}_stats.out', )
     runtime = pd.read_csv(file_path, delim_whitespace=True, header=None)
 
     runtime = runtime[0].to_numpy()
     x = np.arange(0,len(runtime))
 
     # Plot each column in a separate subplot
-    axes.plot(x, runtime, label=solver_dict[i])
+    axes.plot(x, runtime, label=solver_dict[i], color=solver_color_dict[solver])
     axes.legend()
     axes.grid(True)
 
