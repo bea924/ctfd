@@ -1,5 +1,5 @@
 import numpy as np
-from global_variables import G8
+from riemann_functions.global_variables import G8
 
 
 def laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dx, dt):

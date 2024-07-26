@@ -1,5 +1,5 @@
 import numpy as np
-from global_variables import GAMMA, G8
+from riemann_functions.global_variables import GAMMA, G8
 
 
 def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx, entropy_fix_parameter=-0.1):

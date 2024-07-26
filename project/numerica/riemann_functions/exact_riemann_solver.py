@@ -1,15 +1,15 @@
 import numpy as np
-from global_variables import GAMMA, G1, G2, G3, G4, G5, G6, G7, G8
+from riemann_functions.global_variables import GAMMA, G1, G2, G3, G4, G5, G6, G7, G8, MAX_TIMESTEPS
 
 
-def exact_riemann_solver(n_cells, d_L, u_L, p_L, d_R, u_R, p_R, dx, diaphragm_position, output_time, max_iterations):
+def exact_riemann_solver(n_cells, d_L, u_L, p_L, d_R, u_R, p_R, dx, diaphragm_position, output_time):
     # compute sound speeds
     c_L = np.sqrt(GAMMA * p_L/d_L)
     c_R = np.sqrt(GAMMA * p_R/d_R)
 
     # test if vacuum still missing
 
-    pm, um = exact_riemann_pu(d_L, u_L, p_L, c_L, d_R, u_R, p_R, c_R, max_iterations)
+    pm, um = exact_riemann_pu(d_L, u_L, p_L, c_L, d_R, u_R, p_R, c_R)
 
     density = np.zeros(n_cells+1)
     velocity = np.zeros(n_cells+1)
@@ -28,7 +28,7 @@ def exact_riemann_solver(n_cells, d_L, u_L, p_L, d_R, u_R, p_R, dx, diaphragm_po
     return density, velocity, pressure
 
 
-def exact_riemann_pu(d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R, max_iterations=20, tolerance=1e-05):
+def exact_riemann_pu(d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R, tolerance=1e-05):
     """
     computes the pressure (PM) and velocity (UM) in the star region using the exact Riemann solver
     """
@@ -37,7 +37,7 @@ def exact_riemann_pu(d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_lo
     p_old = p_start_guess
     u_diff = u_local_R - u_local_L
 
-    for i in range(max_iterations):
+    for i in range(MAX_TIMESTEPS):
         # left state flux and its derivative
         f_L, f_Ld = pressure_functions_return(p_old, p_local_L, c_local_L, d_local_L)
         # right state flux and its derivative

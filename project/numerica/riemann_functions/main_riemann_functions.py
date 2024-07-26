@@ -2,12 +2,12 @@ from configparser import ConfigParser
 import numpy as np
 import os
 import time
-from global_variables import GAMMA, G8, COURANT, MAX_TIMESTEPS, PRESSURE_SCALING_FACTOR
-from exact_solver import exact_riemann_solver
-from godunov_approximate_solver import godunov_exact_riemann_solver
-from laxfried_solver import laxfriedriechs_solver
-from godunov_roe_solver import godunov_roe_solver
-from godunov_osher_solver import godunov_osher_solver
+from riemann_functions.global_variables import GAMMA, G8, COURANT, MAX_TIMESTEPS, PRESSURE_SCALING_FACTOR
+from riemann_functions.exact_riemann_solver import exact_riemann_solver
+from riemann_functions.godunov_approximate_solver import godunov_approximate_riemann_solver
+from riemann_functions.laxfried_solver import laxfriedriechs_solver
+from riemann_functions.godunov_roe_solver import godunov_roe_solver
+from riemann_functions.godunov_osher_solver import godunov_osher_solver
 
 
 def main_riemann_solver(problem_type, solver, output_time, n_cells, input_file="riemann.ini"):
@@ -27,7 +27,7 @@ def main_riemann_solver(problem_type, solver, output_time, n_cells, input_file="
 
     if solver == 0: # exact riemann
             start_runtime = time.time()
-            density, velocity, pressure = exact_riemann_solver(n_cells, d_initial_L, u_initial_L, p_initial_L, d_initial_R, u_initial_R, p_initial_R, dx, diaphragm_position, output_time, MAX_TIMESTEPS)
+            density, velocity, pressure = exact_riemann_solver(n_cells, d_initial_L, u_initial_L, p_initial_L, d_initial_R, u_initial_R, p_initial_R, dx, diaphragm_position, output_time)
     
     else: # an approximate solver with godunov
         # set initial conditions
@@ -44,13 +44,13 @@ def main_riemann_solver(problem_type, solver, output_time, n_cells, input_file="
 
             # compute intercell fluxes based on method chosen
             if solver == 1:
-                fluxes = godunov_exact_riemann_solver(n_cells, density, velocity, pressure, sound_speed)
+                fluxes = godunov_approximate_riemann_solver(n_cells, density, velocity, pressure, sound_speed)
             elif solver == 2:
-                fluxes = laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dx, dt)
-            elif solver == 3:
                 fluxes = godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx)
-            elif solver == 4:
+            elif solver == 3:
                 fluxes = godunov_osher_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var)
+            elif solver == 4:
+                fluxes = laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dx, dt)
 
             # update solution with conservative godunov
             conserved_var, density, velocity, pressure = update(n_cells, conserved_var, fluxes, dt, dx, density, velocity, pressure)
@@ -203,7 +203,8 @@ def update(n_cells, conserved_var, fluxes, dt, dx, density, velocity, pressure):
 
 def output_to_file(n_cells, dx, density, velocity, pressure, folder_path, filename):
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    folder_path = os.path.join(script_dir, folder_path)
+    parent_dir = os.path.dirname(script_dir)
+    folder_path = os.path.join(parent_dir, folder_path)
 
     # Check if the folder exists, if not, create it
     if not os.path.exists(folder_path):
@@ -220,6 +221,8 @@ def output_to_file(n_cells, dx, density, velocity, pressure, folder_path, filena
 
 def output_to_file_stats(runtime, folder_path, filename):
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(script_dir)
+    folder_path = os.path.join(parent_dir, folder_path)
     file_path = os.path.join(script_dir, folder_path, filename)
 
     with open(file_path, 'w') as file:
