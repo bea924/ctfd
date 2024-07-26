@@ -1,6 +1,7 @@
 GAMMA = 1.4 # specific heat ratio
 COURANT = 0.9 # courant coefficient
 MAX_TIMESTEPS = 10000000
+PRESSURE_SCALING_FACTOR = 1
 
 # gamma expressions used frequently
 G1 = (GAMMA - 1.0)/(2.0*GAMMA)

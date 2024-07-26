@@ -2,7 +2,7 @@ import numpy as np
 from global_variables import GAMMA, G8
 
 
-def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx, entropy_fix_parameter=0.1):
+def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx, entropy_fix_parameter=-0.1):
     """
     to compute an intercell Godunov flux using the ROE approximate Riemann solver with entropy fix
     according to Harten and Hyman. See Chap. 11 of Ref. 1 and original references therein

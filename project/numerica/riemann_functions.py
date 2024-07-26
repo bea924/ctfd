@@ -2,21 +2,22 @@ from configparser import ConfigParser
 import numpy as np
 import os
 import time
-from global_variables import GAMMA, G8
+from global_variables import GAMMA, G8, COURANT, MAX_TIMESTEPS, PRESSURE_SCALING_FACTOR
 from exact_solver import exact_riemann
-from godunov_exact_solver import godunov_exact_riemann_solver
+from godunov_approximate_solver import godunov_exact_riemann_solver
 from laxfried_solver import laxfriedriechs_solver
 from godunov_roe_solver import godunov_roe_solver
 from godunov_osher_solver import godunov_osher_solver
 
 
+def main_riemann_solver(problem_type, solver, output_time, n_cells, input_file="riemann.ini"):
+    print(f"Solving problem {problem_type} with solver {solver}, output time {output_time} and n of cells {n_cells}")
 
-def main_riemann_solver(problem_type, solver, output_time, input_file="riemann.ini"):
     # read file
-    domain_length, diaphragm_position, n_cells, d_initial_L, u_initial_L, p_initial_L, \
-        d_initial_R, u_initial_R, p_initial_R, courant, boundary_L, boundary_R, output_frequency, max_timesteps, pressure_scaling_factor = inputfile_read(path=input_file, problem_type=problem_type)
+    domain_length, diaphragm_position, d_initial_L, u_initial_L, p_initial_L, \
+        d_initial_R, u_initial_R, p_initial_R, boundary_L, boundary_R = inputfile_read(path=input_file, problem_type=problem_type)
 
-    output_filename = f"solver{solver}_t{output_time:.3f}"
+    output_filename = f"solver{solver}_t{output_time:.3f}_n{n_cells}"
    
     # set initial conditions
     dx = domain_length/n_cells # costant mesh size
@@ -26,9 +27,7 @@ def main_riemann_solver(problem_type, solver, output_time, input_file="riemann.i
 
     if solver == 0: # exact riemann
             start_runtime = time.time()
-            density, velocity, pressure = exact_riemann(n_cells, d_initial_L, u_initial_L, p_initial_L, d_initial_R, u_initial_R, p_initial_R, dx, diaphragm_position, output_time, max_timesteps)
-            end_runtime = time.time()
-            runtime = end_runtime - start_runtime
+            density, velocity, pressure = exact_riemann(n_cells, d_initial_L, u_initial_L, p_initial_L, d_initial_R, u_initial_R, p_initial_R, dx, diaphragm_position, output_time, MAX_TIMESTEPS)
     
     else: # an approximate solver with godunov
         # set initial conditions
@@ -36,12 +35,12 @@ def main_riemann_solver(problem_type, solver, output_time, input_file="riemann.i
 
         simulation_time = 0
         simulation_time_diff_tolerance = 1e-06
-        for n in range(max_timesteps):
+        for n in range(MAX_TIMESTEPS):
             # set boundary conditions
             density, velocity, pressure = boundary_conditions_set(density, velocity, pressure, boundary_L, boundary_R)
 
-            # impose courant cfl condition
-            dt, simulation_time, sound_speed = cfl_conditions_impose(n_cells, dx, courant, density, velocity, pressure, n, simulation_time, output_time)
+            # impose COURANT cfl condition
+            dt, simulation_time, sound_speed = cfl_conditions_impose(n_cells, dx, COURANT, density, velocity, pressure, n, simulation_time, output_time)
 
             # compute intercell fluxes based on method chosen
             if solver == 1:
@@ -59,9 +58,6 @@ def main_riemann_solver(problem_type, solver, output_time, input_file="riemann.i
             # check if output needed (aka if at the end on the time limit utput?)
             simulation_time_diff = np.abs(simulation_time - output_time)
 
-            if n%output_frequency == 0:
-                print(f"{n:} {simulation_time:14.6f} {output_time:14.6f}")
-
             if simulation_time_diff < simulation_time_diff_tolerance:
                 break
 
@@ -71,10 +67,12 @@ def main_riemann_solver(problem_type, solver, output_time, input_file="riemann.i
     runtime_elapsed= runtime
 
     # output the solution
-    output_to_file(n_cells, dx, density, velocity, pressure, pressure_scaling_factor, folder_path=f"output/{problem_type}", filename=f"{output_filename}.out") 
+    output_to_file(n_cells, dx, density, velocity, pressure, folder_path=f"output/{problem_type}", filename=f"{output_filename}.out") 
 
     # output the solution runtime
     output_to_file_stats(runtime_elapsed, folder_path=f"output/{problem_type}", filename=f"{output_filename}_stats.out") 
+
+    print(f"Done, runtime: {runtime_elapsed}\n")
 
 
 def inputfile_read(path, problem_type: str):
@@ -87,22 +85,17 @@ def inputfile_read(path, problem_type: str):
     # assign to variables
     domain_length = float(config[problem_type]["domain_length"])
     diaphragm_position = float(config[problem_type]["diaphragm_position"])
-    n_cells = int(config[problem_type]["n_cells"])
     d_initial_L = float(config[problem_type]["d_L"])
     u_initial_L = float(config[problem_type]["u_L"])
     p_initial_L = float(config[problem_type]["p_L"])
     d_initial_R = float(config[problem_type]["d_R"])
     u_initial_R = float(config[problem_type]["u_R"])
     p_initial_R = float(config[problem_type]["p_R"])
-    courant = float(config[problem_type]["courant"])
     boundary_L = int(config[problem_type]["boundary_L"])
     boundary_R = int(config[problem_type]["boundary_R"])
-    output_frequency = int(config[problem_type]["output_frequency"])
-    max_timesteps = int(config[problem_type]["max_timesteps"])
-    pressure_scaling_factor = float(config[problem_type]["pressure_scaling_factor"])
 
-    return domain_length, diaphragm_position, n_cells, d_initial_L, u_initial_L, p_initial_L, \
-       d_initial_R, u_initial_R, p_initial_R, courant, boundary_L, boundary_R, output_frequency, max_timesteps, pressure_scaling_factor
+    return domain_length, diaphragm_position, d_initial_L, u_initial_L, p_initial_L, \
+       d_initial_R, u_initial_R, p_initial_R, boundary_L, boundary_R
 
 
 def initial_conditions_set(n_cells, diaphragm_position, dx, d_initial_L, u_initial_L, p_initial_L, d_initial_R, u_initial_R, p_initial_R):
@@ -161,9 +154,9 @@ def boundary_conditions_set(density, velocity, pressure, boundary_L, boundary_R)
     return density, velocity, pressure
 
 
-def cfl_conditions_impose(n_cells, dx, courant, density, velocity, pressure, n, time, output_time):
+def cfl_conditions_impose(n_cells, dx, COURANT, density, velocity, pressure, n, time, output_time):
     """
-    Courant-Friedrichs-Lewy (CFL) condition to determine a stable time step size (dt) for a numerical simulation
+    COURANT-Friedrichs-Lewy (CFL) condition to determine a stable time step size (dt) for a numerical simulation
     - at each iteration it recalculates a good time step
     """
     # dt i guess recalculated at every iteration
@@ -178,7 +171,7 @@ def cfl_conditions_impose(n_cells, dx, courant, density, velocity, pressure, n, 
         if S_current > S_max:
             S_max = S_current
     
-    dt = courant * dx / S_max
+    dt = COURANT * dx / S_max
 
     # compensate for the approximate calculation of S_MAX in early steps
     if n <= 5:
@@ -208,7 +201,7 @@ def update(n_cells, conserved_var, fluxes, dt, dx, density, velocity, pressure):
     return conserved_var, density, velocity, pressure
    
 
-def output_to_file(n_cells, dx, density, velocity, pressure, ps_scale, folder_path, filename):
+def output_to_file(n_cells, dx, density, velocity, pressure, folder_path, filename):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     folder_path = os.path.join(script_dir, folder_path)
 
@@ -217,12 +210,11 @@ def output_to_file(n_cells, dx, density, velocity, pressure, ps_scale, folder_pa
         os.makedirs(folder_path)
     file_path = os.path.join(folder_path, filename)
 
-    ps_scale = 1
     with open(file_path, 'w') as file:
         for i in range(1, n_cells + 1):
             xpos = (i - 0.5) * dx
-            energy = pressure[i] / density[i] / G8 / ps_scale
-            file.write(f"{xpos:14.6f} {density[i]:14.6f} {velocity[i]:14.6f} {pressure[i] / ps_scale:14.6f} {energy:14.6f}\n")
+            energy = pressure[i] / density[i] / G8 / PRESSURE_SCALING_FACTOR
+            file.write(f"{xpos:14.6f} {density[i]:14.6f} {velocity[i]:14.6f} {pressure[i] / PRESSURE_SCALING_FACTOR:14.6f} {energy:14.6f}\n")
 
 
 
