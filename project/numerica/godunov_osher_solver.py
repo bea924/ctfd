@@ -41,8 +41,16 @@ def godunov_osher_solver(n_cells, density, velocity, pressure, sound_speed, cons
         # Compute intersection points with P-ordering using two-rarefaction approximation
         dml, dmr, um, pm, cml, cmr = intersp(d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R)
 
+        # # compute all middle variables here to avoid errors
+        # dsl, usl, psl = sonlef(d_local_L, u_local_L, p_local_L, c_local_L)
+        # dsr, usr, psr = sonrig(d_local_R, u_local_R, p_local_R, c_local_R)
+        # fsl = fluxeval(dsl, usl, psl)
+        # fsr = fluxeval(dsr, usr, psr)
+        # fml = fluxeval(dml, um, pm)
+        # fmr = fluxeval(dmr, um, pm)
+
         # Case A: Table 12.8, column 2
-        if ((u_local_L - c_local_L) >= 0) and ((u_local_R - c_local_R) >= 0):
+        if ((u_local_L - c_local_L) >= 0) and ((u_local_R + c_local_R) >= 0):
             
             # case A1
             if (um >= 0) and ((um - cml) >= 0):
@@ -203,10 +211,10 @@ def intersp(d_L, u_L, p_L, c_L, d_R, u_R, p_R, c_R):
     according to two-rarefaction approximation
     """
 
-    pq = (p_L/p_R)**G1
-    um = (pq*u_L/c_L + u_R/c_R + G4*(pq-1))/(pq/c_L + 1/c_R)
-    ptl = 1 + G7*(u_L - um)/c_L
-    ptr = 1 + G7*(um - u_R)/c_R
+    pq = (p_L/p_R) ** G1
+    um = (pq * u_L/c_L + u_R/c_R + G4*(pq-1))/(pq/c_L + 1/c_R)
+    ptl = 1 + G7 * (u_L - um)/c_L
+    ptr = 1 + G7 * (um - u_R)/c_R
     pm = 0.5 * (p_L * ptl**G3 + p_R*ptr**G3)
 
     dml = d_L * (pm/p_L)**(1/GAMMA)
