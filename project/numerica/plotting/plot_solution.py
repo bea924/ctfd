@@ -9,22 +9,25 @@ import os
 ##################################
 # Choose the problem type: ModifiedSod, StationaryContact
 problem_type = "ModifiedSod"
-# choose the solver: ExactRiemann [0], LaxFriedrichs [1], Roe [2]
-solver = 0
+# choose the solver: ExactRiemann [0], ExactRiemannAppr [1], LaxFriedrichs [2], Roe [3], Osher [4]
+solver = 4
 output_time = 0.2
 ##################################
 ##################################
 
 columns_names = ["Density", "Velocity", "Pressure", "Energy"]
+axis_names = ["Density [kg/m2]", "Velocity", "Pressure [bar]", "Energy"]
 solver_dict = {
     0: 'ExactRiemann',
-    1: "LaxFriedrichs",
-    2: 'Roe'
+    1: 'ExactRiemannAppr',
+    2: "LaxFriedrichs",
+    3: 'Roe',
+    4: 'Osher'
 }
 
 # Read the .out file
 script_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver{solver}_t{output_time:.2f}.out')
+file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver{solver}_t{output_time:.3f}.out')
 data = pd.read_csv(file_path, delim_whitespace=True, header=None)
 
 # read the json analytic solution file

@@ -26,7 +26,7 @@ solution_2d = np.zeros((len(output_time_array), 100))
 
 for i, output_time in enumerate(output_time_array):
     # Read the .out file
-    file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver{solver}_t{output_time:.2f}.out')
+    file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver{solver}_t{output_time:.3f}.out')
     data = pd.read_csv(file_path, delim_whitespace=True, header=None)
 
     # Read data into columns
