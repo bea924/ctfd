@@ -3,30 +3,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import json
+from style_plots import solver_dict, solver_color_dict, columns_names, axis_names
 
-##################################
-######### USER INPUT #############
-##################################
+########################################
+############### USER INPUT #############
+########################################
 # Choose the problem type: ModifiedSod, StationaryContact
 problem_type = "ModifiedSod"
-# choose the solver: ExactRiemann [0], LaxFriedrichs [1], Roe [2]
-solver_list = [2, 3]
+# choose the solver: ExactRiemann [0], ExactRiemannAppr [1], LaxFriedrichs [2], Roe [3], Osher [4]
+solver_list = [3, 4]
+n_cells = 500
 output_time = 0.2
-##################################
-##################################
+########################################
+########################################
 
-solver_dict = {
-    0: 'ExactRiemann',
-    1: 'ExactRiemannAppr',
-    2: "LaxFriedrichs",
-    3: 'Roe'
-}
-solver_color_dict = {
-    0: 'green',
-    1: 'orange',
-    2: "blue",
-    3: 'purple'
-}
 
 # Get current directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -40,7 +30,7 @@ fig, axes = plt.subplots(2, 2, figsize=(7, 6))
 
 for j, solver in enumerate(solver_list):
     # Read the .out file
-    file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver{solver}_t{output_time:.3f}.out')
+    file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver{solver}_t{output_time:.3f}_n{n_cells}.out')
     data = pd.read_csv(file_path, delim_whitespace=True, header=None)
     
     # Access columns

@@ -8,8 +8,9 @@ import os
 ##################################
 # Choose the problem type: ModifiedSod, StationaryContact
 problem_type = "ModifiedSod"
-# choose the solver: ExactRiemann [0], LaxFriedrichs [1], Roe [2]
+# choose the solver: ExactRiemann [0], ExactRiemannAppr [1], LaxFriedrichs [2], Roe [3], Osher [4]
 solver = 0
+n_cells = 500
 output_time_start = 0.0
 output_time_end = 0.4
 output_time_step = 0.01
@@ -26,7 +27,7 @@ solution_2d = np.zeros((len(output_time_array), 100))
 
 for i, output_time in enumerate(output_time_array):
     # Read the .out file
-    file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver{solver}_t{output_time:.3f}.out')
+    file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver{solver}_t{output_time:.3f}_n{n_cells}.out')
     data = pd.read_csv(file_path, delim_whitespace=True, header=None)
 
     # Read data into columns
@@ -37,7 +38,6 @@ for i, output_time in enumerate(output_time_array):
     columns[3] = data[3].to_numpy()
     columns[4] = data[4].to_numpy()
 
-    columns_names = ["X_position", "Density", "Velocity", "Pressure", "Energy"]
     solution_2d[i] = columns[2] # velocity
 
 
