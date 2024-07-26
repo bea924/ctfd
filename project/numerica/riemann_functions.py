@@ -3,9 +3,11 @@ import numpy as np
 import os
 import time
 from global_variables import GAMMA, G8
+from exact_solver import exact_riemann
 from godunov_exact_solver import godunov_exact_riemann_solver
-from godunov_roe_solver import godunov_roe_solver
 from laxfried_solver import laxfriedriechs_solver
+from godunov_roe_solver import godunov_roe_solver
+from godunov_osher_solver import godunov_osher_solver
 
 
 
@@ -14,54 +16,65 @@ def main_riemann_solver(problem_type, solver, output_time, input_file="riemann.i
     domain_length, diaphragm_position, n_cells, d_initial_L, u_initial_L, p_initial_L, \
         d_initial_R, u_initial_R, p_initial_R, courant, boundary_L, boundary_R, output_frequency, max_timesteps, pressure_scaling_factor = inputfile_read(path=input_file, problem_type=problem_type)
 
-    output_filename = f"solver{solver}_t{output_time:.2f}"
-    runtime_elapsed = []
+    output_filename = f"solver{solver}_t{output_time:.3f}"
    
     # set initial conditions
     dx = domain_length/n_cells # costant mesh size
-    density, velocity, pressure, conserved_var = initial_conditions_set(n_cells, diaphragm_position, dx, d_initial_L, u_initial_L, p_initial_L, d_initial_R, u_initial_R, p_initial_R)
 
+    # measure runtime
+    start_runtime = time.time()
 
-    simulation_time = 0
-    simulation_time_diff_tolerance = 1e-06
-    for n in range(max_timesteps):
-        start_runtime = time.time()
-        # set coundary conditions BCONDI
-        density, velocity, pressure = boundary_conditions_set(density, velocity, pressure, boundary_L, boundary_R)
+    if solver == 0: # exact riemann
+            start_runtime = time.time()
+            density, velocity, pressure = exact_riemann(n_cells, d_initial_L, u_initial_L, p_initial_L, d_initial_R, u_initial_R, p_initial_R, dx, diaphragm_position, output_time, max_timesteps)
+            end_runtime = time.time()
+            runtime = end_runtime - start_runtime
+    
+    else: # an approximate solver with godunov
+        # set initial conditions
+        density, velocity, pressure, conserved_var = initial_conditions_set(n_cells, diaphragm_position, dx, d_initial_L, u_initial_L, p_initial_L, d_initial_R, u_initial_R, p_initial_R)
 
-        # impose courant cfl condition CFLCON
-        dt, simulation_time, sound_speed = cfl_conditions_impose(n_cells, dx, courant, density, velocity, pressure, n, simulation_time, output_time)
+        simulation_time = 0
+        simulation_time_diff_tolerance = 1e-06
+        for n in range(max_timesteps):
+            # set boundary conditions
+            density, velocity, pressure = boundary_conditions_set(density, velocity, pressure, boundary_L, boundary_R)
 
-        # compute intercell fluxes based on method chosen RPGODU
-        if solver == 0:
-            fluxes = godunov_exact_riemann_solver(n_cells, density, velocity, pressure, sound_speed)
-        elif solver == 1:
-            fluxes = laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dx, dt)
-        elif solver == 2:
-            fluxes = godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx)
+            # impose courant cfl condition
+            dt, simulation_time, sound_speed = cfl_conditions_impose(n_cells, dx, courant, density, velocity, pressure, n, simulation_time, output_time)
 
-        # update solution with conservative (godsunov?) UPDATE
-        conserved_var, density, velocity, pressure = update(n_cells, conserved_var, fluxes, dt, dx, density, velocity, pressure)
+            # compute intercell fluxes based on method chosen
+            if solver == 1:
+                fluxes = godunov_exact_riemann_solver(n_cells, density, velocity, pressure, sound_speed)
+            elif solver == 2:
+                fluxes = laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dx, dt)
+            elif solver == 3:
+                fluxes = godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx)
+            elif solver == 4:
+                fluxes = godunov_osher_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var)
 
-        # save the runtime
-        end_runtime = time.time()
-        runtime = end_runtime - start_runtime
-        runtime_elapsed.append(runtime)
+            # update solution with conservative godunov
+            conserved_var, density, velocity, pressure = update(n_cells, conserved_var, fluxes, dt, dx, density, velocity, pressure)
 
-        # check if output needed (aka if at the end on the time limit utput?)
-        simulation_time_diff = np.abs(simulation_time - output_time)
+            # check if output needed (aka if at the end on the time limit utput?)
+            simulation_time_diff = np.abs(simulation_time - output_time)
 
-        if n%output_frequency == 0:
-            print(f"{n:} {simulation_time:14.6f} {output_time:14.6f}")
+            if n%output_frequency == 0:
+                print(f"{n:} {simulation_time:14.6f} {output_time:14.6f}")
 
-        if simulation_time_diff < simulation_time_diff_tolerance:
-            # output the solution
-            output_to_file(n_cells, dx, density, velocity, pressure, folder_path=f"output/{problem_type}", filename=f"{output_filename}.out") 
-            # output_to_file(n_cells, dx, density, velocity, pressure, path=f"project/numerica/output/{output_filename}.out") # for debugger
+            if simulation_time_diff < simulation_time_diff_tolerance:
+                break
 
-            # output the solution stats
-            output_to_file_stats(runtime_elapsed, path=f"output/{problem_type}/{output_filename}_stats.out") 
-            break
+    # save the runtime
+    end_runtime = time.time()
+    runtime = end_runtime - start_runtime
+    runtime_elapsed= runtime
+
+    # output the solution
+    output_to_file(n_cells, dx, density, velocity, pressure, pressure_scaling_factor, folder_path=f"output/{problem_type}", filename=f"{output_filename}.out") 
+
+    # output the solution runtime
+    output_to_file_stats(runtime_elapsed, folder_path=f"output/{problem_type}", filename=f"{output_filename}_stats.out") 
 
 
 def inputfile_read(path, problem_type: str):
@@ -92,7 +105,7 @@ def inputfile_read(path, problem_type: str):
        d_initial_R, u_initial_R, p_initial_R, courant, boundary_L, boundary_R, output_frequency, max_timesteps, pressure_scaling_factor
 
 
-def initial_conditions_set(n_cells, diaphragm_position, dx, d_initial_L, u_initial_L, p_initial_L, d_initial_R, u_initial_R, p_initial_R): # INITIA
+def initial_conditions_set(n_cells, diaphragm_position, dx, d_initial_L, u_initial_L, p_initial_L, d_initial_R, u_initial_R, p_initial_R):
     """
     set initial conditions
      - initialize state variables for each cell (d, u, p) and the conserved variabless
@@ -121,7 +134,7 @@ def initial_conditions_set(n_cells, diaphragm_position, dx, d_initial_L, u_initi
     return density, velocity, pressure, conserved_var
 
 
-def boundary_conditions_set(density, velocity, pressure, boundary_L, boundary_R): # BCONDI
+def boundary_conditions_set(density, velocity, pressure, boundary_L, boundary_R):
     """
     set boundary conditions
     - for d u p at left and right
@@ -148,7 +161,7 @@ def boundary_conditions_set(density, velocity, pressure, boundary_L, boundary_R)
     return density, velocity, pressure
 
 
-def cfl_conditions_impose(n_cells, dx, courant, density, velocity, pressure, n, time, output_time): # cflcon
+def cfl_conditions_impose(n_cells, dx, courant, density, velocity, pressure, n, time, output_time):
     """
     Courant-Friedrichs-Lewy (CFL) condition to determine a stable time step size (dt) for a numerical simulation
     - at each iteration it recalculates a good time step
@@ -160,7 +173,6 @@ def cfl_conditions_impose(n_cells, dx, courant, density, velocity, pressure, n, 
 
     # find S max
     for i in range(n_cells+2):
-        # sound_speed[i] = np.sqrt(GAMMA*pressure[i]) / density[i] IT WAS LIKE THIS BEFORE AND STILL WORKED!!!
         sound_speed[i] = np.sqrt(GAMMA*pressure[i] / density[i])
         S_current = np.abs(velocity[i]) + sound_speed[i]
         if S_current > S_max:
@@ -196,8 +208,7 @@ def update(n_cells, conserved_var, fluxes, dt, dx, density, velocity, pressure):
     return conserved_var, density, velocity, pressure
    
 
-def output_to_file(n_cells, dx, density, velocity, pressure, folder_path, filename):
-    # read file
+def output_to_file(n_cells, dx, density, velocity, pressure, ps_scale, folder_path, filename):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     folder_path = os.path.join(script_dir, folder_path)
 
@@ -215,8 +226,9 @@ def output_to_file(n_cells, dx, density, velocity, pressure, folder_path, filena
 
 
 
-def output_to_file_stats(runtime, path):
-    ps_scale = 1
-    with open(path, 'w') as file:
-        for i in range(len(runtime)):
-            file.write(f"{runtime[i]:14.6f}\n")
+def output_to_file_stats(runtime, folder_path, filename):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(script_dir, folder_path, filename)
+
+    with open(file_path, 'w') as file:
+        file.write(f"{runtime:14.6f}\n")

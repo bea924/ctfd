@@ -1,6 +1,6 @@
 import numpy as np
 from global_variables import GAMMA, G8
-# e1godf
+
 
 def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx, entropy_fix_parameter=0.1):
     """
@@ -121,8 +121,6 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
                 fluxes[2, i] = fd[2, i+1]
 
     return fluxes
-
-
 
 
 def starvals(sig, d_local_K, u_local_K, e_local_K, ak, u_local_avg, c_local_avg, h_local_avg):

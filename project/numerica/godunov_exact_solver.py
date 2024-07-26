@@ -2,12 +2,12 @@ import numpy as np
 from global_variables import GAMMA, G1, G2, G3, G4, G5, G6, G7, G8
 
 
-def godunov_exact_riemann_solver(n_cells, density, velocity, pressure, sound_speed): # for now only exact riemann RPGODU
+def godunov_exact_riemann_solver(n_cells, density, velocity, pressure, sound_speed):
     """
     compute godunov intercell flux using the exact riemann solver
     """
 
-    x_over_t = 0 # x/t must be 0 for the godunov
+    x_over_t = 0 # s = x/t must be 0 for the godunov sampling
     fluxes = np.zeros((3, n_cells+2))
     
     for i in range(n_cells+1):
@@ -22,9 +22,8 @@ def godunov_exact_riemann_solver(n_cells, density, velocity, pressure, sound_spe
 
         pm, um = exact_riemann_solver(d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R)
 
-        # calls sample for x_over_t=0
         # get godunov state values
-        dsam, usam, psam = sample(x_over_t, um, pm, d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R)
+        dsam, usam, psam = state_variables_sample(x_over_t, um, pm, d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R)
             
         # calculate intercell flux 1 2 3
         fluxes[0, i] = dsam * usam
@@ -35,22 +34,21 @@ def godunov_exact_riemann_solver(n_cells, density, velocity, pressure, sound_spe
     return fluxes
 
 
-def exact_riemann_solver(d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R, max_iterations=20, tolerance=1e-05): #EXACT
+def exact_riemann_solver(d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R, max_iterations=20, tolerance=1e-05):
     """
     computes the pressure (PM) and velocity (UM) in the star region using the exact Riemann solver
     """
 
-    # p_start_guess = 0 # later implement GUESSP
-    p_start_guess = guessp(d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R)
+    p_start_guess = p_starregion_approximate_guess(d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R)
     tol = 10
     p_old = p_start_guess
     u_diff = u_local_R - u_local_L
 
     for i in range(max_iterations):
         # left state flux and its derivative
-        f_L, f_Ld = prefun(p_old, p_local_L, c_local_L, d_local_L)
+        f_L, f_Ld = pressure_functions_return(p_old, p_local_L, c_local_L, d_local_L)
         # right state flux and its derivative
-        f_R, f_Rd = prefun(p_old, p_local_R, c_local_R, d_local_R)
+        f_R, f_Rd = pressure_functions_return(p_old, p_local_R, c_local_R, d_local_R)
         # newton raphson method to update pressure
         p_new = p_old - (f_L + f_R + u_diff) / (f_Ld + f_Rd)
 
@@ -64,14 +62,14 @@ def exact_riemann_solver(d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, 
 
         p_old = p_new
 
-    u_new = 0.5*(u_local_L + u_local_R + f_R - f_L)  # speed (is it maybe wrong? original: 0.5*(u_L + u_R + f_R - f_L)
+    u_new = 0.5*(u_local_L + u_local_R + f_R - f_L)
 
     return p_new, u_new
 
 
-def guessp(d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R):
+def p_starregion_approximate_guess(d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_local_R, c_local_R):
     """
-    initial guess for the pressure in the Star Region
+    initial guess for the pressure in the Star Region using approximate methods
     """
 
     cup = 0.25 * (d_local_L + d_local_R) * (c_local_L + c_local_R) # combined term involving the average of densities and sound speeds
@@ -86,7 +84,7 @@ def guessp(d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_l
         pm_start_guess = ppv
     else:
         if (ppv < p_min):
-            #select Two-Rarefaction Riemann solver
+            #select Two-Rarefaction Riemann solverc
             pq = (p_local_L/p_local_R)**G1
             um =  (pq * u_local_L/c_local_L + u_local_R/c_local_R + G4 * (pq - 1.0)) / (pq/c_local_L + 1.0/c_local_R)
             ptl = 1.0 + G7 * (u_local_L - um)/c_local_L
@@ -101,7 +99,7 @@ def guessp(d_local_L, u_local_L, p_local_L, c_local_L, d_local_R, u_local_R, p_l
     return pm_start_guess
 
 
-def prefun(p, p_K, c_K, d_K):
+def pressure_functions_return(p, p_K, c_K, d_K):
     """
     computes the pressure functions and their derivatives used in the exact Riemann solver
     - selects if raref or shock
@@ -125,7 +123,7 @@ def prefun(p, p_K, c_K, d_K):
     return f, fd
 
 
-def sample(s, um, pm, d_L, u_L, p_L, c_L, d_R, u_R, p_R, c_R):
+def state_variables_sample(s, um, pm, d_L, u_L, p_L, c_L, d_R, u_R, p_R, c_R):
     """
     sample the solution throughout the wave pattern resulting from a Riemann problem
     determines the state variables (density, velocity, and pressure) at a given position S in the flow based on the computed pressure and velocity in the star region.

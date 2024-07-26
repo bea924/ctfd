@@ -6,9 +6,9 @@ from riemann_functions import main_riemann_solver
 ##################################
 # Choose the problem type: ModifiedSod, StationaryContact
 problem_type = "ModifiedSod"
-# choose the solver: ExactRiemann [0], LaxFriedrichs [1], Roe [2]
-solver = 0
-output_time=0.41
+# choose the solver: ExactRiemann [0], ExactRiemannAppr [1], LaxFriedrichs [2], Roe [3], Osher [4]
+solver = 4
+output_time=0.2
 ##################################
 ##################################
 
