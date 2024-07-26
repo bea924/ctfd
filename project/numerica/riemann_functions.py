@@ -3,7 +3,7 @@ import numpy as np
 import os
 import time
 from global_variables import GAMMA, G8, COURANT, MAX_TIMESTEPS, PRESSURE_SCALING_FACTOR
-from exact_solver import exact_riemann
+from exact_solver import exact_riemann_solver
 from godunov_approximate_solver import godunov_exact_riemann_solver
 from laxfried_solver import laxfriedriechs_solver
 from godunov_roe_solver import godunov_roe_solver
@@ -27,7 +27,7 @@ def main_riemann_solver(problem_type, solver, output_time, n_cells, input_file="
 
     if solver == 0: # exact riemann
             start_runtime = time.time()
-            density, velocity, pressure = exact_riemann(n_cells, d_initial_L, u_initial_L, p_initial_L, d_initial_R, u_initial_R, p_initial_R, dx, diaphragm_position, output_time, MAX_TIMESTEPS)
+            density, velocity, pressure = exact_riemann_solver(n_cells, d_initial_L, u_initial_L, p_initial_L, d_initial_R, u_initial_R, p_initial_R, dx, diaphragm_position, output_time, MAX_TIMESTEPS)
     
     else: # an approximate solver with godunov
         # set initial conditions
