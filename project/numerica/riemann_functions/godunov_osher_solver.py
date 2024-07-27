@@ -205,11 +205,9 @@ def intersp(d_L, u_L, p_L, c_L, d_R, u_R, p_R, c_R):
     """
 
     # 12.72-73
-    pq = (p_L/p_R) ** G1
-    um = (pq * u_L/c_L + u_R/c_R + G4*(pq-1))/(pq/c_L + 1/c_R)
-    ptl = 1 + G7 * (u_L - um)/c_L
-    ptr = 1 + G7 * (um - u_R)/c_R
-    pm = 0.5 * (p_L * ptl**G3 + p_R*ptr**G3)
+    p_temp = (p_L/p_R) ** G1
+    um = (p_temp * u_L/c_L + u_R/c_R + G4*(p_temp-1))/(p_temp/c_L + 1/c_R)
+    pm = 0.5 * (p_L * (1 + G7 * (u_L - um)/c_L)**G3 + p_R*(1 + G7 * (um - u_R)/c_R)**G3)
 
     dml = d_L * (pm/p_L)**(1/GAMMA) # 12.74
     dmr = d_R * (pm/p_R)**(1/GAMMA)

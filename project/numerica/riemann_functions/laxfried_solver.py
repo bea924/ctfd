@@ -22,7 +22,7 @@ def laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, con
 
     for i in range(n_cells+1):
         # lax fiedrich flux
-        fluxes[0,i] = 0.5 * (fd[0, i] + fd[0, i+1]) + 0.5 * (dx/dt) * (conserved_var[0,i] - conserved_var[0,i+1])
+        fluxes[0,i] = 0.5 * (fd[0, i] + fd[0, i+1]) + 0.5 * (dx/dt) * (conserved_var[0,i] - conserved_var[0,i+1]) # 5.77
         fluxes[1,i] = 0.5 * (fd[1, i] + fd[1, i+1]) + 0.5 * (dx/dt) * (conserved_var[1,i] - conserved_var[1,i+1])
         fluxes[2,i] = 0.5 * (fd[2, i] + fd[2, i+1]) + 0.5 * (dx/dt) * (conserved_var[2,i] - conserved_var[2,i+1])
 

@@ -57,16 +57,8 @@ def plot_solution_validation(problem_type, solver, n_cells, output_time):
 
 
 
-def plot_solution_error(problem_type, solver, n_cells, output_time):
-    # Read the .out file
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver{solver}_t{output_time:.3f}_n{n_cells}.out')
-    data = pd.read_csv(file_path, sep='\s+', header=None)
-    columns_solver = np.zeros((data.shape[1],data.shape[0]))
-    for i in range(5):
-        columns_solver[i] = data[i].to_numpy()
-
-    # Read the .out file of the exact solution
+def plot_solution_error(problem_type, solver_list, n_cells, output_time):
+        # Read the .out file of the exact solution
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver0_t{output_time:.3f}_n{n_cells}.out')
     data = pd.read_csv(file_path, sep='\s+', header=None)
@@ -74,33 +66,36 @@ def plot_solution_error(problem_type, solver, n_cells, output_time):
     for i in range(5):
         columns_exact[i] = data[i].to_numpy()
 
-    # calculate error
-    error = np.zeros((data.shape[1],data.shape[0]))
-    for i in range(4):
-        error[i+1] = np.abs(columns_exact[i+1] - columns_solver[i+1])
-
-    # # normalize log errors
-    # max_log_error = np.max(np.abs(log_error))
-    # normalized_log_error = (log_error*0.3) / max_log_error
-    
-    
     # Figure and subplots
     fig, axes = plt.subplots(2, 2, figsize=(8, 7))
-    x = np.arange(0,100)
 
-    for i in range(4):
-        # the indexing for axes is to transform it into 2d subplotting
-        # Plot numerical solution
-        # axes[i//2, i%2].plot(columns_solver[0], columns_solver[i+1], label=f"{solver_name_dict[solver]}", marker='.', color=solver_color_dict[solver], linewidth=0)
-        axes[i//2, i%2].plot(columns_solver[0], error[i+1], label=f"{solver_name_dict[solver]}", color=solver_color_dict[solver])
-        # plot error
-        # axes[i//2, i%2].fill_between(columns_solver[0], columns_solver[i+1]-normalized_log_error[i], columns_solver[i+1]+normalized_log_error[i], color='darkgrey')
-        # axes[i//2, i%2].errorbar(columns_solver[0,indices_with_errors], columns_solver[i+1,indices_with_errors], yerr=np.abs(normalized_log_error[i+1,indices_with_errors]), fmt='o', ecolor='red', capsize=5, label='Error bars')
-        # axes[i//2, i%2].errorbar(columns_solver[0,indices_with_errors], columns_solver[i+1,indices_with_errors], yerr=np.abs(normalized_log_error[i,indices_with_errors]), fmt='.', color='red', ecolor='red', capsize=5, label='Error bars')
-        axes[i//2, i%2].set_xlabel('x')
-        # axes[i//2, i%2].set_yscale('log')
-        axes[i//2, i%2].set_ylabel(f'{columns_names[i]}')
-        axes[i//2, i%2].grid(True)
+    for i, solver in enumerate(solver_list):
+        # Read the .out file
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver{solver}_t{output_time:.3f}_n{n_cells}.out')
+        data = pd.read_csv(file_path, sep='\s+', header=None)
+        columns_solver = np.zeros((data.shape[1],data.shape[0]))
+        for i in range(5):
+            columns_solver[i] = data[i].to_numpy()
+
+        # calculate error
+        error = np.zeros((data.shape[1],data.shape[0]))
+        for i in range(4):
+            error[i+1] = np.abs(columns_exact[i+1] - columns_solver[i+1])/(columns_exact[i+1] + 1e-10)
+
+        for i in range(4):
+            # the indexing for axes is to transform it into 2d subplotting
+            # Plot numerical solution
+            # axes[i//2, i%2].plot(columns_solver[0], columns_solver[i+1], label=f"{solver_name_dict[solver]}", marker='.', color=solver_color_dict[solver], linewidth=0)
+            axes[i//2, i%2].plot(columns_solver[0], error[i+1], label=f"{solver_name_dict[solver]}", color=solver_color_dict[solver])
+            # plot error
+            # axes[i//2, i%2].fill_between(columns_solver[0], columns_solver[i+1]-normalized_log_error[i], columns_solver[i+1]+normalized_log_error[i], color='darkgrey')
+            # axes[i//2, i%2].errorbar(columns_solver[0,indices_with_errors], columns_solver[i+1,indices_with_errors], yerr=np.abs(normalized_log_error[i+1,indices_with_errors]), fmt='o', ecolor='red', capsize=5, label='Error bars')
+            # axes[i//2, i%2].errorbar(columns_solver[0,indices_with_errors], columns_solver[i+1,indices_with_errors], yerr=np.abs(normalized_log_error[i,indices_with_errors]), fmt='.', color='red', ecolor='red', capsize=5, label='Error bars')
+            axes[i//2, i%2].set_xlabel('x')
+            axes[i//2, i%2].set_yscale('log')
+            axes[i//2, i%2].set_ylabel(f'{columns_names[i]}')
+            axes[i//2, i%2].grid(True)
 
     handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels, loc='upper center', ncol=2)

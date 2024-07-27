@@ -44,13 +44,14 @@ def main_riemann_solver(problem_type, solver, output_time, n_cells, input_file="
 
             # compute intercell fluxes based on method chosen
             if solver == 1:
-                fluxes = godunov_approximate_riemann_solver(n_cells, density, velocity, pressure, sound_speed)
+                fluxes = laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dx, dt)
+                # fluxes = godunov_approximate_riemann_solver(n_cells, density, velocity, pressure, sound_speed)
             elif solver == 2:
                 fluxes = godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx)
             elif solver == 3:
                 fluxes = godunov_osher_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var)
-            elif solver == 4:
-                fluxes = laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dx, dt)
+            # elif solver == 4:
+            #     fluxes = laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dx, dt)
 
             # update solution with conservative godunov
             conserved_var, density, velocity, pressure = update(n_cells, conserved_var, fluxes, dt, dx, density, velocity, pressure)
@@ -167,7 +168,7 @@ def cfl_conditions_impose(n_cells, dx, COURANT, density, velocity, pressure, n, 
     # find S max
     for i in range(n_cells+2):
         sound_speed[i] = np.sqrt(GAMMA*pressure[i] / density[i])
-        S_current = np.abs(velocity[i]) + sound_speed[i]
+        S_current = np.abs(velocity[i]) + sound_speed[i] # 6.20
         if S_current > S_max:
             S_max = S_current
     
