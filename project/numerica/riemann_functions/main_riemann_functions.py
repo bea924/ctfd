@@ -23,6 +23,7 @@ def main_riemann_solver(problem_type, solver, output_time, n_cells, input_file="
     # set initial conditions
     dx = domain_length/n_cells # costant mesh size
 
+
     # measure runtime
     start_runtime = time.time()
 
@@ -47,9 +48,11 @@ def main_riemann_solver(problem_type, solver, output_time, n_cells, input_file="
             if solver == 1:
                 fluxes = laxfriedriechs_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dx, dt)
             elif solver == 2:
-                fluxes = godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx)
+                fluxes = godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx, entropy_fix_parameter=-1)
             elif solver == 3:
                 fluxes = godunov_osher_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var)
+            elif solver == 4:
+                fluxes = godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx) # with entropy fix
 
             # update solution with conservative expression
             conserved_var, density, velocity, pressure = conservative_update(n_cells, conserved_var, fluxes, dt, dx, density, velocity, pressure)
@@ -71,7 +74,6 @@ def main_riemann_solver(problem_type, solver, output_time, n_cells, input_file="
     output_to_file_stats(runtime_elapsed, folder_path=f"output/{problem_type}", filename=f"{output_filename}_stats.out") 
 
     print(f"Done, runtime: {runtime_elapsed}\n")
-
 
 def inputfile_read(path, problem_type: str):
     # read file

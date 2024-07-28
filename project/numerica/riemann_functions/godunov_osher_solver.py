@@ -4,7 +4,7 @@ from riemann_functions.global_variables import GAMMA, G1, G2, G3, G4, G5, G6, G7
 
 def godunov_osher_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var):
     """
-    Osher Godunov method, with P ordering
+    Osher Godunov method, with P ordering (Toro Ch12)
     """
 
     fluxes_cell = np.zeros((3, n_cells+2)) # the fluxes from within the cell

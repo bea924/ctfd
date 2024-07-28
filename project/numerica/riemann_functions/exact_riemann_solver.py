@@ -11,8 +11,6 @@ def exact_riemann_solver(n_cells, d_L, u_L, p_L, d_R, u_R, p_R, dx, diaphragm_po
     a_L = np.sqrt(GAMMA * p_L/d_L)
     a_R = np.sqrt(GAMMA * p_R/d_R)
 
-    # test if vacuum still missing
-
     p_star, u_star = exact_riemann_star_calculate(d_L, u_L, p_L, a_L, d_R, u_R, p_R, a_R)
 
     density = np.zeros(n_cells+1)
@@ -97,12 +95,12 @@ def state_variables_sample(s, u_star, p_star, d_L, u_L, p_L, a_L, d_R, u_R, p_R,
     """
 
     if (s <= u_star):
-        # sample left of the contact discontinuity
+        # left of the contact wave
         if (p_star <= p_L):
             # left rarefaction
             s_head_L = u_L - a_L
             if (s <= s_head_L):
-                # sampled point is left data state
+                # left data state
                 d = d_L
                 u = u_L
                 p = p_L
@@ -110,12 +108,12 @@ def state_variables_sample(s, u_star, p_star, d_L, u_L, p_L, a_L, d_R, u_R, p_R,
                 cm_L = a_L*(p_star/p_L)**G1
                 stl = u_star-cm_L
                 if (s > stl):
-                    #  Sampled point is Star Left state
+                    #  star left state
                     d = d_L*(p_star/p_L)**(1.0/GAMMA)
                     u = u_star
                     p = p_star
                 else:
-                    # Sampled point is inside left fan
+                    # inside fan
                     u = G5*(a_L + G7 * u_L + s)
                     a = G5*(a_L + G7 * (u_L - s))
                     d = d_L*(a/a_L)**G4
@@ -125,28 +123,28 @@ def state_variables_sample(s, u_star, p_star, d_L, u_L, p_L, a_L, d_R, u_R, p_R,
             p_star_L = p_star/p_L
             sl = u_L - a_L*np.sqrt(G2 * p_star_L + G1)
             if (s <= sl):
-                # sampled point is left data state
+                # left data state
                 d = d_L
                 u = u_L
                 p = p_L
             else:
-                #  Sampled point is Star Left stat
+                #  star left stat
                 d = d_L*(p_star_L + G6)/(p_star_L*G6 + 1) 
                 u = u_star
                 p = p_star
     else:
-        # sample right of the contact discontinuity
+        # right of the contact wave
         if (p_star > p_R):
             # left shock
             p_star_R = p_star/p_R
             s_R = u_R + a_R*np.sqrt(G2*p_star_R + G1)
             if (s >= s_R):
-                # sampled point is right data state
+                # right data state
                 d = d_R
                 u = u_R
                 p = p_R
             else:
-                # Sampled point is Star Right state
+                # star right state
                 d = d_R*(p_star_R+G6)/(p_star_R*G6 + 1.0)
                 u = u_star
                 p = p_star
@@ -154,7 +152,7 @@ def state_variables_sample(s, u_star, p_star, d_L, u_L, p_L, a_L, d_R, u_R, p_R,
             # right rarefaction
             s_head_R = u_R + a_R
             if (s >= s_head_R):
-                # sampled point is right data state
+                # right data state
                 d = d_R
                 u = u_R
                 p = p_R
@@ -162,12 +160,12 @@ def state_variables_sample(s, u_star, p_star, d_L, u_L, p_L, a_L, d_R, u_R, p_R,
                 cm_R = a_R*(p_star/p_R)**G1
                 s_tail_R = u_star + cm_R
                 if (s <= s_tail_R):
-                    #  Sampled point is Star Right stat
+                    #  star right stat
                     d = d_R*((p_star/p_R)**(1.0/GAMMA))
                     u = u_star
                     p = p_star
                 else:
-                    #  Sampled point is inside left fan
+                    #  inside left fan
                     u = G5*(-a_R + G7*u_R + s)
                     a = G5*(a_R - G7*(u_R - s))
                     d = d_R*(a/a_R)**G4

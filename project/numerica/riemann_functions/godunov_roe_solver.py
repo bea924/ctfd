@@ -2,9 +2,9 @@ import numpy as np
 from riemann_functions.global_variables import GAMMA, G8
 
 
-def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx, entropy_fix_parameter=-0.1):
+def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx, entropy_fix_parameter=0.1):
     """
-    Roe fluxes intercell godunov calculation (Toro ch11)
+    Roe fluxes intercell godunov calculation (Toro Ch11)
     with entropy fix
     """
 
