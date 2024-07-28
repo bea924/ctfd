@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 import os
+from plotting.error_calculation import MAE_calculate, MSE_calculate, RMSE_calculate, MRE_calculate, MAPE_calculate
 
 # plot style
 plt.rcParams.update({'font.size': 14})
@@ -57,9 +58,115 @@ def plot_solution_validation(problem_type, solver, n_cells, output_time):
     plt.show()
 
 
+def plot_convergence_spatial(problem_type, solver, n_cells_list, output_time):
+    # read the json analytic solution file
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    jsonfile_path = os.path.join(script_dir, 'analytic_solutions.json')
+    with open(jsonfile_path, 'r') as file:
+        analytic_solution = json.load(file)
+    # save analytic in list
+    x_analytic = []
+    y_analytic = []
+    for i in range(4):
+        x_analytic.append(analytic_solution[f"{problem_type}"][columns_names[i]]["x"])
+        y_analytic.append(analytic_solution[f"{problem_type}"][columns_names[i]]["y"])
+
+    # calculate the error for each n_cell
+    errors = np.zeros((4,len(n_cells_list)))
+    for j, n_cells in enumerate(n_cells_list):
+        # Read the .out file
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver{solver}_t{output_time:.3f}_n{n_cells}.out')
+        data = pd.read_csv(file_path, sep='\s+', header=None)
+        columns_solver = np.zeros((data.shape[1],data.shape[0]))
+        for i in range(5):
+            columns_solver[i] = data[i].to_numpy()
+
+        #interpolate the analytic data to fit the cell number
+        for i in range(4): # each info type
+            x_old = np.linspace(0, 1, num=len(x_analytic[i]))
+            y_old = np.array(y_analytic[i])
+            x_new = np.linspace(0,1, n_cells)
+            analytic_interp = np.interp(x_new, x_old, y_old)
+            error_absolute = np.abs(analytic_interp[i] - columns_solver[i+1])
+            error_relative = error_absolute/np.abs(analytic_interp[i] + 1e-10) # calculate error relative for whole array
+            errors[i, j] = MSE_calculate(error_absolute)
+
+    # Figure and subplots
+    fig, axes = plt.subplots(2, 2, figsize=(8, 7))
+
+    for i in range(4):
+        # the indexing for axes is to transform it into 2d subplotting
+        # Plot numerical solution
+        axes[i//2, i%2].plot(n_cells_list, errors[i], label=f"{solver_name_dict[solver]}", marker='.', color=solver_color_dict[solver], linewidth=2)
+        axes[i//2, i%2].set_xlabel('n cells')
+        axes[i//2, i%2].set_ylabel(f'{columns_names[i]} MSE error')
+        axes[i//2, i%2].set_yscale('log')
+        axes[i//2, i%2].grid(True)
+
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper center', ncol=2)
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    plt.show()
+
+
+def plot_convergence_spatial_comparison(problem_type, solver_list, n_cells_list, output_time):
+    # read the json analytic solution file
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    jsonfile_path = os.path.join(script_dir, 'analytic_solutions.json')
+    with open(jsonfile_path, 'r') as file:
+        analytic_solution = json.load(file)
+    # save analytic in list
+    x_analytic = []
+    y_analytic = []
+    for i in range(4):
+        x_analytic.append(analytic_solution[f"{problem_type}"][columns_names[i]]["x"])
+        y_analytic.append(analytic_solution[f"{problem_type}"][columns_names[i]]["y"])
+
+    # Figure and subplots
+    fig, axes = plt.subplots(2, 2, figsize=(8, 7))
+
+    for solver in solver_list:
+        # calculate the error for each n_cell
+        errors = np.zeros((4,len(n_cells_list)))
+        for j, n_cells in enumerate(n_cells_list):
+            # Read the .out file
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver{solver}_t{output_time:.3f}_n{n_cells}.out')
+            data = pd.read_csv(file_path, sep='\s+', header=None)
+            columns_solver = np.zeros((data.shape[1],data.shape[0]))
+            for i in range(5):
+                columns_solver[i] = data[i].to_numpy()
+
+            #interpolate the analytic data to fit the cell number
+            for i in range(4): # each info type
+                x_old = np.linspace(0, 1, num=len(x_analytic[i]))
+                y_old = np.array(y_analytic[i])
+                x_new = np.linspace(0,1, n_cells)
+                analytic_interp = np.interp(x_new, x_old, y_old)
+                error_absolute = np.abs(analytic_interp[i] - columns_solver[i+1])
+                error_relative = error_absolute/np.abs(analytic_interp[i] + 1e-10) # calculate error relative for whole array
+                errors[i, j] = MSE_calculate(error_absolute)
+
+
+        for i in range(4):
+            # the indexing for axes is to transform it into 2d subplotting
+            # Plot numerical solution
+            axes[i//2, i%2].plot(n_cells_list, errors[i], label=f"{solver_name_dict[solver]}", marker='.', color=solver_color_dict[solver], linewidth=2)
+            axes[i//2, i%2].set_xlabel('n cells')
+            axes[i//2, i%2].set_ylabel(f'{columns_names[i]} MSE error')
+            axes[i//2, i%2].set_yscale('log')
+            axes[i//2, i%2].grid(True)
+
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc='upper center', ncol=2)
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    plt.show()
+
+
 
 def plot_solution_error(problem_type, solver_list, n_cells, output_time):
-        # Read the .out file of the exact solution
+    # Read the .out file of the exact solution
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver0_t{output_time:.3f}_n{n_cells}.out')
     data = pd.read_csv(file_path, sep='\s+', header=None)
