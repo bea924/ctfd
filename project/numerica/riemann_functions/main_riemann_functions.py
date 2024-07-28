@@ -163,7 +163,7 @@ def cfl_conditions_impose(n_cells, dx, COURANT, density, velocity, pressure, n, 
     # find S max
     for i in range(n_cells+2):
         sound_speed[i] = np.sqrt(GAMMA*pressure[i] / density[i])
-        S_current = np.abs(velocity[i]) + sound_speed[i] # 6.20
+        S_current = np.abs(velocity[i]) + sound_speed[i] # equation 6.20 in Toro
         if S_current > S_max:
             S_max = S_current
     
