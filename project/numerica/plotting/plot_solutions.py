@@ -5,6 +5,7 @@ import json
 import os
 
 # plot style
+plt.rcParams.update({'font.size': 14})
 solver_name_dict = {
     0: 'Exact Riemann',
     1: "Lax Friedrichs",
@@ -81,17 +82,12 @@ def plot_solution_error(problem_type, solver_list, n_cells, output_time):
         # calculate error
         error = np.zeros((data.shape[1],data.shape[0]))
         for i in range(4):
-            error[i+1] = np.abs(columns_exact[i+1] - columns_solver[i+1])/(columns_exact[i+1] + 1e-10)
+            error[i+1] = np.abs(columns_exact[i+1] - columns_solver[i+1])/np.abs(columns_exact[i+1] + 1e-10)
 
         for i in range(4):
             # the indexing for axes is to transform it into 2d subplotting
             # Plot numerical solution
-            # axes[i//2, i%2].plot(columns_solver[0], columns_solver[i+1], label=f"{solver_name_dict[solver]}", marker='.', color=solver_color_dict[solver], linewidth=0)
             axes[i//2, i%2].plot(columns_solver[0], error[i+1], label=f"{solver_name_dict[solver]}", color=solver_color_dict[solver])
-            # plot error
-            # axes[i//2, i%2].fill_between(columns_solver[0], columns_solver[i+1]-normalized_log_error[i], columns_solver[i+1]+normalized_log_error[i], color='darkgrey')
-            # axes[i//2, i%2].errorbar(columns_solver[0,indices_with_errors], columns_solver[i+1,indices_with_errors], yerr=np.abs(normalized_log_error[i+1,indices_with_errors]), fmt='o', ecolor='red', capsize=5, label='Error bars')
-            # axes[i//2, i%2].errorbar(columns_solver[0,indices_with_errors], columns_solver[i+1,indices_with_errors], yerr=np.abs(normalized_log_error[i,indices_with_errors]), fmt='.', color='red', ecolor='red', capsize=5, label='Error bars')
             axes[i//2, i%2].set_xlabel('x')
             axes[i//2, i%2].set_yscale('log')
             axes[i//2, i%2].set_ylabel(f'{columns_names[i]}')
@@ -99,7 +95,7 @@ def plot_solution_error(problem_type, solver_list, n_cells, output_time):
 
     handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels, loc='upper center', ncol=2)
-    plt.tight_layout(rect=[0, 0, 1, 0.95])
+    plt.tight_layout(rect=[0, 0, 1, 0.9])
     plt.show()
 
 
@@ -134,16 +130,14 @@ def plot_solutions_compare(problem_type, solver_list, n_cells, output_time):
 
     for i in range(4):
         # Plot the analytic solution
-        # axes[i//2, i%2].plot(analytic_solution[f"{problem_type}"][columns_names[i]]["x"], analytic_solution[f"{problem_type}"][columns_names[i]]["y"], label=f"Analytic", color="grey")
         axes[i//2, i%2].set_xlabel('x')
         axes[i//2, i%2].set_ylabel(f'{columns_names[i]}')
         axes[i//2, i%2].grid(True)
 
     handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels, loc='upper center', ncol=2)
-    plt.tight_layout(rect=[0, 0, 1, 0.9])
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
     plt.show()
-
 
 
 def plot_runtime(problem_type, solver_list, output_time, n_cells_list):
@@ -161,7 +155,6 @@ def plot_runtime(problem_type, solver_list, output_time, n_cells_list):
             file_path = os.path.join(script_dir, '..', f"output/{problem_type}", f'solver{solver}_t{output_time:.3f}_n{n_cells}_stats.out', )
             runtime = pd.read_csv(file_path, sep='\s+', header=None)
             runtime_list[j] = runtime[0].to_numpy()
-        # x = np.arange(0,len(runtime))
 
         # Plot each column in a separate subplot
         axes.plot(n_cells_list, runtime_list, label=solver_name_dict[solver], color=solver_color_dict[solver], marker='o')
