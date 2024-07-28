@@ -24,13 +24,14 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
         fluxes_cell[2,i] = velocity[i] *(conserved_var[2,i] + pressure[i])
 
     for i in range(n_cells+1):
+        # obtaining the local left boundary constants per cell
         d_L = density[i]
         u_L = velocity[i]
         p_L = pressure[i]
         a_L = sound_speed[i]
         e_L = conserved_var[2,i]
         h_L = (e_L + p_L) / d_L
-
+        # obtaining the local left boundary constants per cell
         d_R = density[i+1]
         u_R = velocity[i+1]
         p_R = pressure[i+1]
@@ -38,23 +39,23 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
         e_R = conserved_var[2,i+1]
         h_R = (e_R + p_R) / d_R
 
-        # compute roe averages
+        # compute roe averages from equation (11.118) in Toro
         roe_avg = np.sqrt(d_R/d_L) # alternative equivalent calculation proposed by Toro
         d_avg = roe_avg * d_L
         u_avg = (u_L + roe_avg*u_R) / (1 + roe_avg)
         h_avg = (h_L + roe_avg*h_R) / (1 + roe_avg)
         a_avg = np.sqrt(G8 * (h_avg - 0.5*u_avg*u_avg))
 
-        # differences
+        # differences (Delta)
         u_diff = u_R - u_L
         p_diff = p_R - p_L
 
         # identify wave pattern
         if u_avg > 0:
             # contact wave goes to the right
-            eval = u_avg - a_avg
+            eval = u_avg - a_avg # given as lambda 1 in equation (11.107) in Toro
             snew = eval
-            ak = (p_diff - d_avg*a_avg*u_diff) / (2* a_avg*a_avg)
+            ak = (p_diff - d_avg*a_avg*u_diff) / (2* a_avg*a_avg) # given as alpha 1 in equation 11.113 in Toro
             cflm = eval* dt/dx
 
             if np.abs(cflm)  < entropy_fix_parameter:
@@ -70,11 +71,11 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
             
             # Compute one-sided intercell flux from left side
             if snew < 0:
-                # Compute right eigenvectors
+                # Compute right eigenvectors given in eq 11.108 in Toro
                 right_ev[0] = 1
                 right_ev[1] = u_avg - a_avg
                 right_ev[2] = h_avg - u_avg*a_avg
-                # compute one sided intercell flux
+                # compute one sided intercell flux using Equations 11.27 - 11.29 in Toro
                 fluxes_intercell[0, i] = fluxes_cell[0,i] + snew*ak*right_ev[0]
                 fluxes_intercell[1, i] = fluxes_cell[1,i] + snew*ak*right_ev[1]
                 fluxes_intercell[2, i] = fluxes_cell[2,i] + snew*ak*right_ev[2]
@@ -86,9 +87,9 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
 
         else:
             # Contact wave goes to the right (one of these is wrong)
-            eval = u_avg + a_avg
+            eval = u_avg + a_avg # given by lambda in equation (11.107) in Toro
             snew = eval
-            ak = (p_diff + d_avg*a_avg*u_diff) / (2* a_avg*a_avg)
+            ak = (p_diff + d_avg*a_avg*u_diff) / (2* a_avg*a_avg) # solving alpha in equation 11.113 in Toro
             cflm = eval * dt/dx
 
             if np.abs(cflm)  < entropy_fix_parameter:
@@ -105,11 +106,11 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
             
             # Compute one-sided intercell flux from left side
             if snew > 0:
-                # Compute right eigenvectors
+                # Compute right eigenvectors given in eq 11.108 in Toro
                 right_ev[0] = 1
                 right_ev[1] = u_avg + a_avg
                 right_ev[2] = h_avg + u_avg*a_avg
-                # compute one sided intercell flux
+                # compute one sided intercell flux using Equations 11.27 - 11.29 in Toro
                 fluxes_intercell[0, i] = fluxes_cell[0,i+1] - snew*ak*right_ev[0]
                 fluxes_intercell[1, i] = fluxes_cell[1,i+1] - snew*ak*right_ev[1]
                 fluxes_intercell[2, i] = fluxes_cell[2,i+1] - snew*ak*right_ev[2]
