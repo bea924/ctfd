@@ -5,7 +5,7 @@ from riemann_functions.main_riemann_functions import main_riemann_solver
 ####################################################################
 # Choose the problem type: ModifiedSod, Test2, Test3, Test5
 problem_type = "ModifiedSod"
-# choose the solver: ExactRiemann [0], LaxFriedrichs [1], Roe [2], Osher [4], ExactRiemannAppr [4],
+# choose the solver: ExactRiemann [0], LaxFriedrichs [1], Roe [2], Osher [3]
 solver = 0
 # Choose the output time, suggestions: ModifiedSod (0.2), Test2 (0.15), Test3 (0.012), Test5 (0.012)
 output_time = 0

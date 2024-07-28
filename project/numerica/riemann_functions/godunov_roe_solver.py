@@ -4,65 +4,64 @@ from riemann_functions.global_variables import GAMMA, G8
 
 def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conserved_var, dt, dx, entropy_fix_parameter=-0.1):
     """
-    to compute an intercell Godunov flux using the ROE approximate Riemann solver with entropy fix
-    according to Harten and Hyman. See Chap. 11 of Ref. 1 and original references therein
+    Roe fluxes intercell godunov calculation (Toro ch11)
+    with entropy fix
     """
 
     # if entropy_fix_parameter negative, no entropy fix is done
-    fd = np.zeros((3, n_cells+2)) # not sure what this is
-    fluxes = np.zeros((3, n_cells+2))
-    revec = np.zeros(3) # right eigenvectors
+    fluxes_cell = np.zeros((3, n_cells+2)) # the fluxes from within the cell
+    fluxes_intercell = np.zeros((3, n_cells+2))
+    right_ev = np.zeros(3) # right eigenvectors
 
     for i in range(n_cells+2):
-        if (i < 1) or (i > n_cells): # i guess filling in where the conserved varaibles are still 0?
+        if (i < 1) or (i > n_cells): # conserved variable border cells were not initialised
             conserved_var[0, i] = density[i]
             conserved_var[1, i] = density[i] * velocity[i]
             conserved_var[2, i] = 0.5 * density[i] * velocity[i] * velocity[i] + pressure[i]/G8
 
-        fd[0,i] = conserved_var[1,i]
-        fd[1,i] = conserved_var[1,i] * velocity[i] + pressure[i]
-        fd[2,i] = velocity[i] *(conserved_var[2,i] + pressure[i])
+        fluxes_cell[0,i] = conserved_var[1,i]
+        fluxes_cell[1,i] = conserved_var[1,i] * velocity[i] + pressure[i]
+        fluxes_cell[2,i] = velocity[i] *(conserved_var[2,i] + pressure[i])
 
-    # Solve Riemann problem (i,i+1) and store quantities in I
     for i in range(n_cells+1):
-        d_local_L = density[i]
-        u_local_L = velocity[i]
-        p_local_L = pressure[i]
-        c_local_L = sound_speed[i]
-        e_local_L = conserved_var[2,i]
-        h_local_L = (e_local_L + p_local_L) / d_local_L
+        d_L = density[i]
+        u_L = velocity[i]
+        p_L = pressure[i]
+        a_L = sound_speed[i]
+        e_L = conserved_var[2,i]
+        h_L = (e_L + p_L) / d_L
 
-        d_local_R = density[i+1]
-        u_local_R = velocity[i+1]
-        p_local_R = pressure[i+1]
-        c_local_R = sound_speed[i+1]
-        e_local_R = conserved_var[2,i+1]
-        h_local_R = (e_local_R + p_local_R) / d_local_R
+        d_R = density[i+1]
+        u_R = velocity[i+1]
+        p_R = pressure[i+1]
+        a_R = sound_speed[i+1]
+        e_R = conserved_var[2,i+1]
+        h_R = (e_R + p_R) / d_R
 
         # compute roe averages
-        roe_avg = np.sqrt(d_local_R/d_local_L)
-        d_local_avg = roe_avg * d_local_L
-        u_local_avg = (u_local_L + roe_avg*u_local_R) / (1 + roe_avg)
-        h_local_avg = (h_local_L + roe_avg*h_local_R) / (1 + roe_avg)
-        c_local_avg = np.sqrt(G8 * (h_local_avg - 0.5*u_local_avg*u_local_avg))
+        roe_avg = np.sqrt(d_R/d_L) # alternative equivalent calculation proposed by Toro
+        d_avg = roe_avg * d_L
+        u_avg = (u_L + roe_avg*u_R) / (1 + roe_avg)
+        h_avg = (h_L + roe_avg*h_R) / (1 + roe_avg)
+        a_avg = np.sqrt(G8 * (h_avg - 0.5*u_avg*u_avg))
 
-        # compute increments
-        u_diff = u_local_R - u_local_L
-        p_diff = p_local_R - p_local_L
+        # differences
+        u_diff = u_R - u_L
+        p_diff = p_R - p_L
 
         # identify wave pattern
-        if u_local_avg > 0:
+        if u_avg > 0:
             # contact wave goes to the right
-            eval = u_local_avg - c_local_avg
+            eval = u_avg - a_avg
             snew = eval
-            ak = (p_diff - d_local_avg*c_local_avg*u_diff) / (2* c_local_avg*c_local_avg)
+            ak = (p_diff - d_avg*a_avg*u_diff) / (2* a_avg*a_avg)
             cflm = eval* dt/dx
 
             if np.abs(cflm)  < entropy_fix_parameter:
                 # small left wave speed is identified
                 sig = 1
-                umm, cmm = starvals(sig, d_local_L, u_local_L, e_local_L, ak, u_local_avg, c_local_avg, h_local_avg)
-                sml = u_local_L - c_local_L
+                umm, cmm = starvals(sig, d_L, u_L, e_L, ak, u_avg, a_avg, h_avg)
+                sml = u_L - a_L
                 smr = umm - cmm
 
                 if (sml < 0) and (smr > 0):
@@ -72,33 +71,33 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
             # Compute one-sided intercell flux from left side
             if snew < 0:
                 # Compute right eigenvectors
-                revec[0] = 1
-                revec[1] = u_local_avg - c_local_avg
-                revec[2] = h_local_avg - u_local_avg*c_local_avg
+                right_ev[0] = 1
+                right_ev[1] = u_avg - a_avg
+                right_ev[2] = h_avg - u_avg*a_avg
                 # compute one sided intercell flux
-                fluxes[0, i] = fd[0,i] + snew*ak*revec[0]
-                fluxes[1, i] = fd[1,i] + snew*ak*revec[1]
-                fluxes[2, i] = fd[2,i] + snew*ak*revec[2]
+                fluxes_intercell[0, i] = fluxes_cell[0,i] + snew*ak*right_ev[0]
+                fluxes_intercell[1, i] = fluxes_cell[1,i] + snew*ak*right_ev[1]
+                fluxes_intercell[2, i] = fluxes_cell[2,i] + snew*ak*right_ev[2]
             else:
                 # Compute one-sided intercell flux
-                fluxes[0,i] = fd[0,i]
-                fluxes[1,i] = fd[1,i]
-                fluxes[2,i] = fd[2,i]
+                fluxes_intercell[0,i] = fluxes_cell[0,i]
+                fluxes_intercell[1,i] = fluxes_cell[1,i]
+                fluxes_intercell[2,i] = fluxes_cell[2,i]
 
         else:
             # Contact wave goes to the right (one of these is wrong)
-            eval = u_local_avg + c_local_avg
+            eval = u_avg + a_avg
             snew = eval
-            ak = (p_diff + d_local_avg*c_local_avg*u_diff) / (2* c_local_avg*c_local_avg)
+            ak = (p_diff + d_avg*a_avg*u_diff) / (2* a_avg*a_avg)
             cflm = eval * dt/dx
 
             if np.abs(cflm)  < entropy_fix_parameter:
                 # Small right wave speed is identified
                 # Use Roe's Riemann solver to find particle speed UMM and sound speed CMM in start right state
                 sig = -1
-                umm, cmm = starvals(sig, d_local_R, u_local_R, e_local_R, ak, u_local_avg, c_local_avg, h_local_avg)
+                umm, cmm = starvals(sig, d_R, u_R, e_R, ak, u_avg, a_avg, h_avg)
                 sml = umm + cmm
-                smr = u_local_R + c_local_R
+                smr = u_R + a_R
 
                 if (sml < 0) and (smr > 0):
                     # Right wave is a sonic rarefaction, speed is modified
@@ -107,33 +106,31 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
             # Compute one-sided intercell flux from left side
             if snew > 0:
                 # Compute right eigenvectors
-                revec[0] = 1
-                revec[1] = u_local_avg + c_local_avg
-                revec[2] = h_local_avg + u_local_avg*c_local_avg
+                right_ev[0] = 1
+                right_ev[1] = u_avg + a_avg
+                right_ev[2] = h_avg + u_avg*a_avg
                 # compute one sided intercell flux
-                fluxes[0, i] = fd[0,i+1] - snew*ak*revec[0]
-                fluxes[1, i] = fd[1,i+1] - snew*ak*revec[1]
-                fluxes[2, i] = fd[2,i+1] - snew*ak*revec[2]
+                fluxes_intercell[0, i] = fluxes_cell[0,i+1] - snew*ak*right_ev[0]
+                fluxes_intercell[1, i] = fluxes_cell[1,i+1] - snew*ak*right_ev[1]
+                fluxes_intercell[2, i] = fluxes_cell[2,i+1] - snew*ak*right_ev[2]
             else:
                 # Compute one-sided intercell flux
-                fluxes[0, i] = fd[0, i+1]
-                fluxes[1, i] = fd[1, i+1]
-                fluxes[2, i] = fd[2, i+1]
+                fluxes_intercell[0, i] = fluxes_cell[0, i+1]
+                fluxes_intercell[1, i] = fluxes_cell[1, i+1]
+                fluxes_intercell[2, i] = fluxes_cell[2, i+1]
 
-    return fluxes
+    return fluxes_intercell
 
 
-def starvals(sig, d_local_K, u_local_K, e_local_K, ak, u_local_avg, c_local_avg, h_local_avg):
+def starvals(sig, d_K, u_K, e_K, ak, u_avg, a_avg, h_avg):
     """
-    to compute particle velocity and sound speed in
-    appropriate Star state, according to Roe's Riemann
-    solver for states, in order to apply entropy fix
-    of Harten and Hyman.
+    calculate the velocity and sound speed in the star region
+    (used for entropy fix Harten and Hyman)
     """
 
-    dmk = d_local_K + sig*ak
-    umm = (d_local_K*u_local_K + sig*ak*(u_local_avg - sig*c_local_avg)) / dmk
-    pm = G8 * (e_local_K + sig*ak*(h_local_avg - sig*u_local_avg*c_local_avg) - 0.5*dmk*umm*umm)
+    dmk = d_K + sig*ak
+    umm = (d_K*u_K + sig*ak*(u_avg - sig*a_avg)) / dmk
+    pm = G8 * (e_K + sig*ak*(h_avg - sig*u_avg*a_avg) - 0.5*dmk*umm*umm)
     cmm = np.sqrt(GAMMA * pm/dmk)
 
     return umm, cmm
