@@ -19,7 +19,7 @@ def exact_riemann_solver(n_cells, d_L, u_L, p_L, d_R, u_R, p_R, dx, diaphragm_po
     velocity = np.zeros(n_cells+1)
     pressure = np.zeros(n_cells+1)
 
-    for i in range(n_cells+1): #maybe +1?
+    for i in range(n_cells+1):
         x_position = (i - 0.5)*dx
         s = (x_position - diaphragm_position) /output_time
 

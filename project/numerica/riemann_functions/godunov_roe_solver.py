@@ -52,22 +52,22 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
 
         # identify wave pattern
         if u_avg > 0:
-            # contact wave goes to the right
-            eval = u_avg - a_avg # given as lambda 1 in equation (11.107) in Toro
-            snew = eval
-            ak = (p_diff - d_avg*a_avg*u_diff) / (2* a_avg*a_avg) # given as alpha 1 in equation 11.113 in Toro
-            cflm = eval* dt/dx
+            # contact wave goes to the left
+            eigenvalue = u_avg - a_avg # given as lambda in equation (11.107) in Toro
+            snew = eigenvalue
+            alpha = (p_diff - d_avg*a_avg*u_diff) / (2* a_avg*a_avg) # given as alpha 1 in equation 11.113 in Toro
+            courant_star = eigenvalue* dt/dx
 
-            if np.abs(cflm)  < entropy_fix_parameter:
+            if np.abs(courant_star)  < entropy_fix_parameter:
                 # small left wave speed is identified
                 sig = 1
-                umm, cmm = starvals(sig, d_L, u_L, e_L, ak, u_avg, a_avg, h_avg)
+                umm, cmm = starvals(sig, d_L, u_L, e_L, alpha, u_avg, a_avg, h_avg)
                 sml = u_L - a_L
                 smr = umm - cmm
 
                 if (sml < 0) and (smr > 0):
                     # Left wave is a sonic rarefaction, speed is modified
-                    snew = sml * (smr - eval)/(smr - sml)
+                    snew = sml * (smr - eigenvalue)/(smr - sml)
             
             # Compute one-sided intercell flux from left side
             if snew < 0:
@@ -76,9 +76,9 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
                 right_ev[1] = u_avg - a_avg
                 right_ev[2] = h_avg - u_avg*a_avg
                 # compute one sided intercell flux using Equations 11.27 - 11.29 in Toro
-                fluxes_intercell[0, i] = fluxes_cell[0,i] + snew*ak*right_ev[0]
-                fluxes_intercell[1, i] = fluxes_cell[1,i] + snew*ak*right_ev[1]
-                fluxes_intercell[2, i] = fluxes_cell[2,i] + snew*ak*right_ev[2]
+                fluxes_intercell[0, i] = fluxes_cell[0,i] + snew*alpha*right_ev[0]
+                fluxes_intercell[1, i] = fluxes_cell[1,i] + snew*alpha*right_ev[1]
+                fluxes_intercell[2, i] = fluxes_cell[2,i] + snew*alpha*right_ev[2]
             else:
                 # Compute one-sided intercell flux
                 fluxes_intercell[0,i] = fluxes_cell[0,i]
@@ -86,23 +86,23 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
                 fluxes_intercell[2,i] = fluxes_cell[2,i]
 
         else:
-            # Contact wave goes to the right (one of these is wrong)
-            eval = u_avg + a_avg # given by lambda in equation (11.107) in Toro
-            snew = eval
-            ak = (p_diff + d_avg*a_avg*u_diff) / (2* a_avg*a_avg) # solving alpha in equation 11.113 in Toro
-            cflm = eval * dt/dx
+            # Contact wave goes to the right
+            eigenvalue = u_avg + a_avg # given by lambda in equation (11.107) in Toro
+            snew = eigenvalue
+            alpha = (p_diff + d_avg*a_avg*u_diff) / (2* a_avg*a_avg) # solving alpha in equation 11.113 in Toro
+            courant_star = eigenvalue * dt/dx
 
-            if np.abs(cflm)  < entropy_fix_parameter:
+            if np.abs(courant_star)  < entropy_fix_parameter:
                 # Small right wave speed is identified
                 # Use Roe's Riemann solver to find particle speed UMM and sound speed CMM in start right state
                 sig = -1
-                umm, cmm = starvals(sig, d_R, u_R, e_R, ak, u_avg, a_avg, h_avg)
+                umm, cmm = starvals(sig, d_R, u_R, e_R, alpha, u_avg, a_avg, h_avg)
                 sml = umm + cmm
                 smr = u_R + a_R
 
                 if (sml < 0) and (smr > 0):
                     # Right wave is a sonic rarefaction, speed is modified
-                    snew = smr * (eval - sml) / (smr - sml)
+                    snew = smr * (eigenvalue - sml) / (smr - sml)
             
             # Compute one-sided intercell flux from left side
             if snew > 0:
@@ -111,9 +111,9 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
                 right_ev[1] = u_avg + a_avg
                 right_ev[2] = h_avg + u_avg*a_avg
                 # compute one sided intercell flux using Equations 11.27 - 11.29 in Toro
-                fluxes_intercell[0, i] = fluxes_cell[0,i+1] - snew*ak*right_ev[0]
-                fluxes_intercell[1, i] = fluxes_cell[1,i+1] - snew*ak*right_ev[1]
-                fluxes_intercell[2, i] = fluxes_cell[2,i+1] - snew*ak*right_ev[2]
+                fluxes_intercell[0, i] = fluxes_cell[0,i+1] - snew*alpha*right_ev[0]
+                fluxes_intercell[1, i] = fluxes_cell[1,i+1] - snew*alpha*right_ev[1]
+                fluxes_intercell[2, i] = fluxes_cell[2,i+1] - snew*alpha*right_ev[2]
             else:
                 # Compute one-sided intercell flux
                 fluxes_intercell[0, i] = fluxes_cell[0, i+1]
@@ -123,15 +123,15 @@ def godunov_roe_solver(n_cells, density, velocity, pressure, sound_speed, conser
     return fluxes_intercell
 
 
-def starvals(sig, d_K, u_K, e_K, ak, u_avg, a_avg, h_avg):
+def starvals(sig, d_K, u_K, e_K, alpha, u_avg, a_avg, h_avg):
     """
     calculate the velocity and sound speed in the star region
     (used for entropy fix Harten and Hyman)
     """
 
-    dmk = d_K + sig*ak
-    umm = (d_K*u_K + sig*ak*(u_avg - sig*a_avg)) / dmk
-    pm = G8 * (e_K + sig*ak*(h_avg - sig*u_avg*a_avg) - 0.5*dmk*umm*umm)
+    dmk = d_K + sig*alpha
+    umm = (d_K*u_K + sig*alpha*(u_avg - sig*a_avg)) / dmk
+    pm = G8 * (e_K + sig*alpha*(h_avg - sig*u_avg*a_avg) - 0.5*dmk*umm*umm)
     cmm = np.sqrt(GAMMA * pm/dmk)
 
     return umm, cmm

@@ -19,7 +19,7 @@ n_cells = 100
 problem_type = "ModifiedSod"
 output_time = 0.2
 for solver in [0, 1, 2, 3]:
-    for n_cells in [100, 500]:
+    for n_cells in [100, 200, 300, 400, 500, 700, 1000, 1500, 2000]:
         main_riemann_solver(problem_type, solver, output_time, n_cells)
 
 problem_type = "Test2"
